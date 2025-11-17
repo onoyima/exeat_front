@@ -1,0 +1,432 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+/* Font Configuration */
+:root {
+  --font-montserrat: 'Montserrat', system-ui, sans-serif;
+}
+
+/* Apply Montserrat font globally */
+@layer base {
+  html {
+    font-family: var(--font-montserrat);
+  }
+
+  body {
+    font-family: var(--font-montserrat);
+  }
+}
+
+/* Font classes for specific usage */
+.font-montserrat {
+  font-family: var(--font-montserrat);
+}
+
+/* Animation Delays */
+@layer utilities {
+  .animation-delay-2000 {
+    animation-delay: 2s;
+  }
+
+  .animation-delay-4000 {
+    animation-delay: 4s;
+  }
+
+  /* Enhanced font size utilities */
+  .text-readable {
+    font-size: 1.0625rem;
+    /* 17px */
+    line-height: 1.625rem;
+  }
+
+  .text-comfortable {
+    font-size: 1.125rem;
+    /* 18px */
+    line-height: 1.75rem;
+  }
+
+  .text-large {
+    font-size: 1.25rem;
+    /* 20px */
+    line-height: 1.75rem;
+  }
+
+  .text-xl-readable {
+    font-size: 1.375rem;
+    /* 22px */
+    line-height: 2rem;
+  }
+}
+
+/* Prevent Flash of Unstyled Content */
+html {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Optimize image loading */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Prevent layout shift */
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --background: rgb(252, 252, 252);
+  --foreground: rgb(0, 33, 26);
+  --card: rgb(255, 255, 255);
+  --card-foreground: rgb(0, 33, 26);
+  --popover: rgb(255, 255, 255);
+  --popover-foreground: rgb(0, 33, 26);
+  --primary: rgb(0, 79, 64);
+  --primary-foreground: rgb(255, 255, 255);
+  --secondary: rgb(230, 240, 238);
+  --secondary-foreground: rgb(0, 58, 47);
+  --muted: rgb(240, 247, 245);
+  --muted-foreground: rgb(82, 102, 97);
+  --accent: rgb(230, 240, 238);
+  --accent-foreground: rgb(0, 33, 26);
+  --destructive: rgb(239, 68, 68);
+  --destructive-foreground: rgb(255, 255, 255);
+  --border: rgb(217, 229, 226);
+  --input: rgb(230, 240, 238);
+  --ring: rgb(0, 79, 64);
+  --chart-1: rgb(0, 79, 64);
+  --chart-2: rgb(0, 106, 85);
+  --chart-3: rgb(0, 133, 106);
+  --chart-4: rgb(0, 160, 127);
+  --chart-5: rgb(51, 179, 153);
+  --sidebar: rgb(240, 247, 245);
+  --sidebar-foreground: rgb(82, 102, 97);
+  --sidebar-primary: rgb(0, 79, 64);
+  --sidebar-primary-foreground: rgb(255, 255, 255);
+  --sidebar-accent: rgb(230, 240, 238);
+  --sidebar-accent-foreground: rgb(0, 33, 26);
+  --sidebar-border: rgb(217, 229, 226);
+  --sidebar-ring: rgb(0, 79, 64);
+  --font-sans: Inter;
+  --font-serif: serif;
+  --font-mono: monospace;
+  --radius: 0.5rem;
+  --shadow-2xs: 0px 4px 8px 0px hsl(168.6076 100% 15.4902% / 0.03);
+  --shadow-xs: 0px 4px 8px 0px hsl(168.6076 100% 15.4902% / 0.03);
+  --shadow-sm: 0px 4px 8px 0px hsl(168.6076 100% 15.4902% / 0.05), 0px 1px 2px -1px hsl(168.6076 100% 15.4902% / 0.05);
+  --shadow: 0px 4px 8px 0px hsl(168.6076 100% 15.4902% / 0.05), 0px 1px 2px -1px hsl(168.6076 100% 15.4902% / 0.05);
+  --shadow-md: 0px 4px 8px 0px hsl(168.6076 100% 15.4902% / 0.05), 0px 2px 4px -1px hsl(168.6076 100% 15.4902% / 0.05);
+  --shadow-lg: 0px 4px 8px 0px hsl(168.6076 100% 15.4902% / 0.05), 0px 4px 6px -1px hsl(168.6076 100% 15.4902% / 0.05);
+  --shadow-xl: 0px 4px 8px 0px hsl(168.6076 100% 15.4902% / 0.05), 0px 8px 10px -1px hsl(168.6076 100% 15.4902% / 0.05);
+  --shadow-2xl: 0px 4px 8px 0px hsl(168.6076 100% 15.4902% / 0.13);
+  --tracking-normal: 0rem;
+  --spacing: 0.25rem;
+}
+
+.dark {
+  --background: rgb(10, 20, 17);
+  --foreground: rgb(224, 224, 224);
+  --card: rgb(13, 26, 22);
+  --card-foreground: rgb(245, 245, 245);
+  --popover: rgb(10, 20, 17);
+  --popover-foreground: rgb(245, 245, 245);
+  --primary: rgb(0, 169, 136);
+  --primary-foreground: rgb(0, 33, 26);
+  --secondary: rgb(16, 42, 35);
+  --secondary-foreground: rgb(224, 224, 224);
+  --muted: rgb(16, 42, 35);
+  --muted-foreground: rgb(163, 163, 163);
+  --accent: rgb(16, 42, 35);
+  --accent-foreground: rgb(224, 224, 224);
+  --destructive: rgb(127, 29, 29);
+  --destructive-foreground: rgb(248, 250, 252);
+  --border: rgb(26, 56, 48);
+  --input: rgb(26, 56, 48);
+  --ring: rgb(0, 169, 136);
+  --chart-1: rgb(0, 169, 136);
+  --chart-2: rgb(51, 187, 170);
+  --chart-3: rgb(102, 204, 190);
+  --chart-4: rgb(153, 221, 211);
+  --chart-5: rgb(204, 239, 232);
+  --sidebar: rgb(13, 26, 22);
+  --sidebar-foreground: rgb(163, 163, 163);
+  --sidebar-primary: rgb(0, 169, 136);
+  --sidebar-primary-foreground: rgb(0, 33, 26);
+  --sidebar-accent: rgb(16, 42, 35);
+  --sidebar-accent-foreground: rgb(224, 224, 224);
+  --sidebar-border: rgb(26, 56, 48);
+  --sidebar-ring: rgb(0, 169, 136);
+}
+
+@layer base {
+  * {
+    @apply border-[var(--border)];
+  }
+
+  body {
+    @apply bg-university-light text-foreground font-medium;
+    overflow-x: hidden;
+    height: 100vh;
+    /* Prevent FOUC */
+    visibility: visible;
+    opacity: 1;
+    letter-spacing: var(--tracking-normal);
+    font-size: 16px;
+    /* Base font size */
+  }
+
+  /* Ensure no horizontal scrolling on mobile */
+  html,
+  body {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  /* Prevent horizontal overflow in containers */
+  .container,
+  .flex,
+  .grid {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  /* Ensure cards don't overflow */
+  .card,
+  .card-content {
+    overflow-x: hidden;
+    word-wrap: break-word;
+  }
+
+  /* Better responsive text handling */
+  .truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Increase font sizes for better readability */
+  h1 {
+    font-size: 2.25rem;
+    /* 36px */
+    line-height: 2.5rem;
+  }
+
+  h2 {
+    font-size: 1.875rem;
+    /* 30px */
+    line-height: 2.25rem;
+  }
+
+  h3 {
+    font-size: 1.5rem;
+    /* 24px */
+    line-height: 2rem;
+
+  }
+
+  h4 {
+    font-size: 1.25rem;
+    /* 20px */
+    line-height: 1.75rem;
+  }
+
+  h5 {
+    font-size: 1.125rem;
+    /* 18px */
+    line-height: 1.75rem;
+  }
+
+  h6 {
+    font-size: 1rem;
+    /* 16px */
+    line-height: 1.5rem;
+  }
+
+  p {
+    font-size: 1.0625rem;
+    /* 17px */
+    line-height: 1.625rem;
+  }
+
+  /* Increase form element font sizes */
+  input,
+  textarea,
+  select {
+    font-size: 1rem !important;
+    /* 16px */
+  }
+
+  /* Increase button font sizes */
+  button {
+    font-size: 1rem;
+    /* 16px */
+  }
+
+  /* Increase table font sizes */
+  table {
+    font-size: 1rem;
+    /* 16px */
+  }
+
+  /* Increase card content font sizes */
+  .card-content {
+    font-size: 1.0625rem;
+    /* 17px */
+  }
+
+  /* Increase sidebar font sizes */
+  .sidebar-nav {
+    font-size: 1.0625rem;
+    /* 17px */
+  }
+
+  /* Increase badge font sizes */
+  .badge {
+    font-size: 0.875rem;
+    /* 14px */
+  }
+
+  /* Increase navigation and menu font sizes */
+  nav,
+  .nav {
+    font-size: 1.0625rem;
+    /* 17px */
+  }
+
+  /* Increase sidebar font sizes */
+  .sidebar {
+    font-size: 1.0625rem;
+    /* 17px */
+  }
+
+  /* Increase modal and dialog font sizes */
+  .dialog,
+  .modal {
+    font-size: 1.0625rem;
+    /* 17px */
+  }
+
+  /* Increase form label font sizes */
+  label {
+    font-size: 1rem;
+    /* 16px */
+    font-weight: 500;
+  }
+
+  /* Increase description text sizes */
+  .description,
+  .text-muted-foreground {
+    font-size: 1rem;
+    /* 16px */
+  }
+
+  /* Increase small text sizes */
+  .text-sm {
+    font-size: 0.9375rem !important;
+    /* 15px */
+  }
+
+  /* Increase extra small text sizes */
+  .text-xs {
+    font-size: 0.875rem !important;
+    /* 14px */
+  }
+
+  /* Increase large text sizes */
+  .text-lg {
+    font-size: 1.125rem !important;
+    /* 18px */
+  }
+
+  /* Increase extra large text sizes */
+  .text-xl {
+    font-size: 1.25rem !important;
+    /* 20px */
+  }
+
+  /* Increase 2xl text sizes */
+  .text-2xl {
+    font-size: 1.5rem !important;
+    /* 24px */
+  }
+
+  /* Increase 3xl text sizes */
+  .text-3xl {
+    font-size: 1.875rem !important;
+    /* 30px */
+  }
+
+  /* Increase 4xl text sizes */
+  .text-4xl {
+    font-size: 2.25rem !important;
+    /* 36px */
+  }
+
+  /* Increase 5xl text sizes */
+  .text-5xl {
+    font-size: 3rem !important;
+    /* 48px */
+  }
+
+  /* Additional readability improvements */
+  .text-6xl {
+    font-size: 3.75rem !important;
+    /* 60px */
+  }
+
+  /* Improve line heights for better readability */
+  .leading-relaxed {
+    line-height: 1.75 !important;
+  }
+
+  .leading-loose {
+    line-height: 2 !important;
+  }
+
+  /* Improve spacing between text elements */
+  .space-y-text>*+* {
+    margin-top: 1.5rem;
+  }
+
+  /* Better paragraph spacing */
+  p+p {
+    margin-top: 1rem;
+  }
+
+  /* Improve heading margins */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    margin-bottom: 0.75rem;
+    line-height: 1.3;
+  }
+
+  /* Better list readability */
+  ul,
+  ol {
+    padding-left: 1.5rem;
+  }
+
+  li {
+    margin-bottom: 0.5rem;
+    line-height: 1.6;
+  }
+
+  /* Increase small text sizes */
+  .text-sm {
+    font-size: 0.9375rem !important;
+    /* 15px */
+  }
+
+  .text-xs {
+    font-size: 0.8125rem !important;
+    /* 13px */
+  }
+}
