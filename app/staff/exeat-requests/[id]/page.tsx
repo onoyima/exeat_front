@@ -331,6 +331,34 @@ export default function ExeatRequestDetailPage() {
                     </Card>
                 </div>
 
+                {/* Countdown Timer Skeleton */}
+                <div className="mb-4 sm:mb-6 w-full">
+                    <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200 shadow-sm p-3 sm:p-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                            <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                                <Skeleton className="h-10 w-10 sm:h-12 sm:w-12 rounded-full flex-shrink-0" />
+                                <div className="min-w-0 flex-1 space-y-2">
+                                    <Skeleton className="h-4 sm:h-5 w-32 sm:w-40" />
+                                    <Skeleton className="h-3 w-24 sm:w-28" />
+                                </div>
+                            </div>
+                            <div className="flex-shrink-0">
+                                <div className="grid grid-cols-3 gap-1.5 sm:gap-2 w-full sm:w-auto">
+                                    {[...Array(3)].map((_, i) => (
+                                        <div key={i} className="text-center min-w-0 px-0.5">
+                                            <Skeleton className="h-6 sm:h-8 w-8 sm:w-10 mx-auto" />
+                                            <Skeleton className="h-2.5 w-3 mx-auto mt-1" />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="mt-3">
+                            <Skeleton className="h-1.5 w-full rounded-full" />
+                        </div>
+                    </Card>
+                </div>
+
                 {/* Priority Action Section Skeleton */}
                 <div className="mb-8">
                     <Card className="bg-gradient-to-r from-orange-50 to-indigo-50 border-orange-200 shadow-lg">
@@ -513,43 +541,6 @@ export default function ExeatRequestDetailPage() {
                             <ArrowLeft className="h-4 w-4 mr-2" />
                             <span className="hidden sm:inline">Back</span>
                         </Button>
-
-                        {/* Edit Button - Only show for eligible users and pending exeats */}
-                        {canEdit && (
-                            <div className="flex items-center gap-2">
-                                {isEditing ? (
-                                    <>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={toggleEditMode}
-                                            className="border-slate-300 hover:bg-slate-100"
-                                        >
-                                            <XCircle className="h-4 w-4 sm:mr-2" />
-                                            <span className="hidden sm:inline">Cancel</span>
-                                        </Button>
-                                        <Button
-                                            variant="default"
-                                            size="sm"
-                                            onClick={showSaveConfirmation}
-                                        >
-                                            <Save className="h-4 w-4 sm:mr-2" />
-                                            <span className="hidden sm:inline">Save</span>
-                                        </Button>
-                                    </>
-                                ) : (
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={toggleEditMode}
-                                        className="border-slate-300 hover:bg-slate-100"
-                                    >
-                                        <PenLine className="h-4 w-4 sm:mr-2" />
-                                        <span className="hidden sm:inline">Edit</span>
-                                    </Button>
-                                )}
-                            </div>
-                        )}
                     </div>
 
                     <div className="mt-4 sm:mt-6">
@@ -615,13 +606,14 @@ export default function ExeatRequestDetailPage() {
                     </Card>
                 </div>
 
-                {/* Countdown Timer - Show only when student has left the school (after security sign out) */}
-                {request.status === 'security_signout' && (
-                    <div className="mb-4 sm:mb-6">
+                {/* Countdown Timer - Show only when student has left the school (security_signin) */}
+                {request.status === 'security_signin' && request.departure_date && request.return_date && (
+                    <div className="mb-4 sm:mb-6 w-full">
                         <ExeatCountdown
                             departureDate={request.departure_date}
                             returnDate={request.return_date}
                             variant="staff"
+                            className="w-full"
                         />
                     </div>
                 )}
@@ -714,47 +706,51 @@ export default function ExeatRequestDetailPage() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
                     {/* Main Content */}
                     <div className="lg:col-span-2 space-y-4 sm:space-y-6">
-                        {/* Student Information */}
+                        {/* Request Details - Priority Section */}
                         <Card className="bg-white/90 backdrop-blur-sm border-slate-200 shadow-sm hover:shadow-md transition-all duration-200">
                             <CardHeader className="pb-3 sm:pb-4">
-                                <CardTitle className="flex items-center gap-2 text-slate-800 text-base sm:text-lg">
-                                    <UserIcon className="h-4 w-4 sm:h-5 sm:w-5" />
-                                    Student Information
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                                    <div className="space-y-1">
-                                        <Label className="text-xs sm:text-sm font-medium text-slate-600">Full Name</Label>
-                                        <p className="text-slate-800 font-medium text-sm sm:text-base break-words">{request.student.fname} {request.student.lname}</p>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <Label className="text-xs sm:text-sm font-medium text-slate-600">Matric Number</Label>
-                                        <p className="text-slate-800 font-mono font-medium text-sm sm:text-base">{request.matric_no}</p>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <Label className="text-xs sm:text-sm font-medium text-slate-600">Student ID</Label>
-                                        <p className="text-slate-800 font-medium text-sm sm:text-base">{request.student_id}</p>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <Label className="text-xs sm:text-sm font-medium text-slate-600">Accommodation</Label>
-                                        <p className="text-slate-800 text-sm sm:text-base">{request.student_accommodation || 'Not specified'}</p>
-                                    </div>
-                                    <div className="space-y-1 sm:col-span-2">
-                                        <Label className="text-xs sm:text-sm font-medium text-slate-600">Phone</Label>
-                                        <p className="text-slate-800 text-sm sm:text-base">{request.student.phone || 'Not provided'}</p>
-                                    </div>
+                                <div className="flex items-center justify-between">
+                                    <CardTitle className="flex items-center gap-2 text-slate-800 text-base sm:text-lg">
+                                        <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
+                                        Request Details
+                                    </CardTitle>
+                                    {/* Edit Button - Only show for eligible users */}
+                                    {canEdit && (
+                                        <div className="flex items-center gap-2">
+                                            {isEditing ? (
+                                                <>
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={toggleEditMode}
+                                                        className="border-slate-300 hover:bg-slate-100"
+                                                    >
+                                                        <XCircle className="h-4 w-4 sm:mr-2" />
+                                                        <span className="hidden sm:inline">Cancel</span>
+                                                    </Button>
+                                                    <Button
+                                                        variant="default"
+                                                        size="sm"
+                                                        onClick={showSaveConfirmation}
+                                                    >
+                                                        <Save className="h-4 w-4 sm:mr-2" />
+                                                        <span className="hidden sm:inline">Save</span>
+                                                    </Button>
+                                                </>
+                                            ) : (
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={toggleEditMode}
+                                                    className="border-slate-300 hover:bg-slate-100"
+                                                >
+                                                    <PenLine className="h-4 w-4 sm:mr-2" />
+                                                    <span className="hidden sm:inline">Edit</span>
+                                                </Button>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Request Details */}
-                        <Card className="bg-white/90 backdrop-blur-sm border-slate-200 shadow-sm hover:shadow-md transition-all duration-200">
-                            <CardHeader className="pb-3 sm:pb-4">
-                                <CardTitle className="flex items-center gap-2 text-slate-800 text-base sm:text-lg">
-                                    <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
-                                    Request Details
-                                </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
@@ -831,6 +827,40 @@ export default function ExeatRequestDetailPage() {
                                             <Clock className="h-4 w-4 text-slate-400 flex-shrink-0" />
                                             <p className="text-slate-800 font-medium text-sm sm:text-base">{duration} day{duration !== 1 ? 's' : ''}</p>
                                         </div>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Student Information */}
+                        <Card className="bg-white/90 backdrop-blur-sm border-slate-200 shadow-sm hover:shadow-md transition-all duration-200">
+                            <CardHeader className="pb-3 sm:pb-4">
+                                <CardTitle className="flex items-center gap-2 text-slate-800 text-base sm:text-lg">
+                                    <UserIcon className="h-4 w-4 sm:h-5 sm:w-5" />
+                                    Student Information
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                                    <div className="space-y-1">
+                                        <Label className="text-xs sm:text-sm font-medium text-slate-600">Full Name</Label>
+                                        <p className="text-slate-800 font-medium text-sm sm:text-base break-words">{request.student.fname} {request.student.lname}</p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <Label className="text-xs sm:text-sm font-medium text-slate-600">Matric Number</Label>
+                                        <p className="text-slate-800 font-mono font-medium text-sm sm:text-base">{request.matric_no}</p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <Label className="text-xs sm:text-sm font-medium text-slate-600">Student ID</Label>
+                                        <p className="text-slate-800 font-medium text-sm sm:text-base">{request.student_id}</p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <Label className="text-xs sm:text-sm font-medium text-slate-600">Accommodation</Label>
+                                        <p className="text-slate-800 text-sm sm:text-base">{request.student_accommodation || 'Not specified'}</p>
+                                    </div>
+                                    <div className="space-y-1 sm:col-span-2">
+                                        <Label className="text-xs sm:text-sm font-medium text-slate-600">Phone</Label>
+                                        <p className="text-slate-800 text-sm sm:text-base">{request.student.phone || 'Not provided'}</p>
                                     </div>
                                 </div>
                             </CardContent>
