@@ -295,9 +295,9 @@ export default function PendingExeatRequestsPage() {
                             const params = new URLSearchParams();
                             if (statusFilter !== 'all') params.set('status', statusFilter);
                             if (gateFilter !== 'all') params.set('filter', gateFilter);
-                            const url = `http://localhost:8000/api/staff/exeat-requests/export?${params.toString()}`;
+                            // const url = `http://localhost:8000/api/staff/exeat-requests/export?${params.toString()}`;
                             // const url = `https://attendance.veritas.edu.ng/api/staff/exeat-requests/export?${params.toString()}`;
-                            // const url = `https://testexeat.veritas.edu.ng/api/staff/exeat-requests/export?${params.toString()}`;
+                            const url = `https://testexeat.veritas.edu.ng/api/staff/exeat-requests/export?${params.toString()}`;
                             const res = await fetch(url, {
                                 headers: token ? { Authorization: `Bearer ${token}` } : {}
                             });
