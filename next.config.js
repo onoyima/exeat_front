@@ -14,9 +14,9 @@ const nextConfig = {
           {
             key: 'Access-Control-Allow-Origin',
             value: process.env.NODE_ENV === 'production'
-              ? 'http://localhost:8000'
+              // ? 'http://localhost:8000'
               // ? 'https://attendance.veritas.edu.ng'
-              // ? 'https://testexeat.veritas.edu.ng'
+              ? 'https://testexeat.veritas.edu.ng'
 
               : 'http://localhost:3000',
           },
