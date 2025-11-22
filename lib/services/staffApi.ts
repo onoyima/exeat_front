@@ -308,10 +308,10 @@ export const staffApi = api.injectEndpoints({
             transformResponse: (response: any) => ({ items: response?.data ?? [], pagination: response?.pagination ?? null }),
             providesTags: ['ExeatRequests'],
         }),
-        exportGateEvents: builder.query<Blob, { checked?: 'all'|'in'|'out'; search?: string }>({
-            query: ({ checked = 'all', search = '' } = {}) => ({
+        exportGateEvents: builder.query<Blob, { checked?: 'all'|'in'|'out'; search?: string; format?: 'csv'|'xls'|'pdf' }>({
+            query: ({ checked = 'all', search = '', format = 'csv' } = {}) => ({
                 url: '/staff/gate-events/export',
-                params: { checked, search },
+                params: { checked, search, format },
             }),
         }),
     }),

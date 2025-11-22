@@ -45,7 +45,7 @@ export default function StaffNotificationsPage() {
             <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold leading-tight">Notifications</h1>
             <p className="text-sm text-slate-600">Unread: {unreadCount ?? 0}</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
                     <Button variant={filter === 'unread' ? 'default' : 'outline'} size="sm" onClick={() => { setFilter('unread'); setPage(1); }}>Unread</Button>
                     <Button variant={filter === 'read' ? 'default' : 'outline'} size="sm" onClick={() => { setFilter('read'); setPage(1); }}>Read</Button>
                     <Button variant="outline" size="sm" onClick={() => refetch()}>Refresh</Button>

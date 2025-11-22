@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Download, Search } from 'lucide-react';
 import { useGetGateEventsQuery } from '@/lib/services/staffApi';
@@ -19,14 +20,30 @@ export default function GateEventsPage() {
   const [checked, setChecked] = useState<'all' | 'in' | 'out'>('all');
   const [sortBy, setSortBy] = useState<string>('security_signouts.signout_time');
   const [order, setOrder] = useState<'asc' | 'desc'>('desc');
+  const [format, setFormat] = useState<'csv' | 'xls' | 'pdf'>('csv');
 
   const { data, isLoading, refetch } = useGetGateEventsQuery({ page, per_page: perPage, checked, search, sort_by: sortBy, order });
 
-  const onDownload = () => {
-    const url = new URL(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'https://attendance.veritas.edu.ng'}/api/staff/gate-events/export`);
+  const onDownload = async () => {
+    const host = typeof window !== 'undefined' ? window.location.hostname : '';
+    const API_BASE_URL = host === 'testexeat.veritas.edu.ng' ? 'https://testexeat.veritas.edu.ng/api' : 'http://localhost:8000/api';
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    const url = new URL(`${API_BASE_URL}/staff/gate-events/export`);
     url.searchParams.set('checked', checked);
     if (search) url.searchParams.set('search', search);
-    window.open(url.toString(), '_blank');
+    url.searchParams.set('format', format);
+    const res = await fetch(url.toString(), {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    if (!res.ok) return;
+    const blob = await res.blob();
+    const a = document.createElement('a');
+    const filename = `gate_events.${format}`;
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
   };
 
   const items = data?.items ?? [];
@@ -88,13 +105,23 @@ export default function GateEventsPage() {
                 </div>
               )}
             </div>
-            <div className="flex items-center gap-2">
-              <Input placeholder="Search by matric/name" value={search} onChange={(e) => setSearch(e.target.value)} className="w-48" />
+            <div className="flex flex-wrap items-center gap-2">
+              <Input placeholder="Search by matric/name" value={search} onChange={(e) => setSearch(e.target.value)} className="w-full sm:w-48" />
               <Button variant={checked === 'all' ? 'default' : 'outline'} size="sm" onClick={() => setChecked('all')}>All</Button>
               <Button variant={checked === 'out' ? 'default' : 'outline'} size="sm" onClick={() => setChecked('out')}>Checked Out</Button>
               <Button variant={checked === 'in' ? 'default' : 'outline'} size="sm" onClick={() => setChecked('in')}>Checked In</Button>
               <Button variant="outline" size="sm" onClick={() => refetch()}><Search className="h-4 w-4 mr-1" />Search</Button>
-              <Button variant="outline" size="sm" onClick={onDownload}><Download className="h-4 w-4 mr-1" />Download CSV</Button>
+              <Select value={format} onValueChange={(v) => setFormat(v as any)}>
+                <SelectTrigger className="w-32">
+                  <SelectValue placeholder="Format" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="csv">CSV</SelectItem>
+                  <SelectItem value="xls">Excel</SelectItem>
+                  <SelectItem value="pdf">PDF</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button variant="outline" size="sm" onClick={onDownload}><Download className="h-4 w-4 mr-1" />Download</Button>
             </div>
           </div>
         </div>
@@ -119,7 +146,7 @@ export default function GateEventsPage() {
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="min-w-full text-sm">
+                <table className="min-w-full text-xs sm:text-sm">
                   <thead>
                     <tr className="bg-slate-50">
                       {columns.map((c) => (

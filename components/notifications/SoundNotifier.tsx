@@ -10,11 +10,10 @@ export default function SoundNotifier() {
   const firstPollRef = useRef<boolean>(true);
   const currentUser = useSelector(selectCurrentUser) as any;
   const roles: string[] = Array.isArray(currentUser?.roles) ? currentUser.roles : [];
-  const isHostelAdmin = roles.includes('hostel_admin');
-  const [enabled, setEnabled] = useState<boolean>(isHostelAdmin);
-  // const API_BASE_URL = (typeof window !== 'undefined' && window.location.hostname === 'attendance.veritas.edu.ng')
+  const [enabled, setEnabled] = useState<boolean>(true);
+//   const API_BASE_URL = (typeof window !== 'undefined' && window.location.hostname === 'attendance.veritas.edu.ng')
   const API_BASE_URL = (typeof window !== 'undefined' && window.location.hostname === 'testexeat.veritas.edu.ng')
-    // ? 'https://attendance.veritas.edu.ng/api'
+     // ? 'https://attendance.veritas.edu.ng/api'
     ? 'https://testexeat.veritas.edu.ng/api'
     : 'http://localhost:8000/api';
   const dispatch = useDispatch();
@@ -24,7 +23,7 @@ export default function SoundNotifier() {
   const gestureBoundRef = useRef<boolean>(false);
 
   useEffect(() => {
-    setEnabled(isHostelAdmin);
+    setEnabled(true);
     let timer: any;
     let es: EventSource | null = null;
     const playAlertSound = async (audioUrl: string) => {
@@ -54,6 +53,7 @@ export default function SoundNotifier() {
         try {
           const audio = new Audio(audioUrl);
           audio.crossOrigin = 'anonymous';
+          audio.volume = 1.0;
           await audio.play();
           return;
         } catch (__) {
@@ -71,7 +71,7 @@ export default function SoundNotifier() {
             oscillator.type = 'sine';
             oscillator.frequency.setValueAtTime(880, ctx.currentTime);
             gainNode.gain.setValueAtTime(0.001, ctx.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.22, ctx.currentTime + 0.02);
+            gainNode.gain.exponentialRampToValueAtTime(1.0, ctx.currentTime + 0.02);
             gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
             oscillator.connect(gainNode);
             gainNode.connect(ctx.destination);
@@ -130,7 +130,7 @@ export default function SoundNotifier() {
                 dispatch(api.util.invalidateTags(['Profile', 'DashboardStats', 'Staff', 'ExeatRequests']));
               } catch (_) {}
             }
-            if (count > prevCountRef.current && enabled && (latestEvent === 'gate_signout' || latestEvent === 'gate_signin')) {
+            if (count > prevCountRef.current && enabled) {
               await playAlertSound(`${API_BASE_URL}/notifications/alert-audio`);
               dispatch(api.util.invalidateTags(['Notifications']));
             }
@@ -158,15 +158,21 @@ export default function SoundNotifier() {
       };
       document.addEventListener('pointerdown', resume, { once: true });
       document.addEventListener('keydown', resume, { once: true });
+      document.addEventListener('touchstart', resume, { once: true });
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          try { audioCtxRef.current && audioCtxRef.current.resume(); } catch {}
+        }
+      });
     }
 
-    timer = setInterval(fetchCountAndNotify, 10000);
+    timer = setInterval(fetchCountAndNotify, 5000);
     return () => {
       if (timer) clearInterval(timer);
       if (es) es.close();
       if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
     };
-  }, [enabled, API_BASE_URL, dispatch, isHostelAdmin]);
+  }, [enabled, API_BASE_URL, dispatch]);
 
   return null;
 }

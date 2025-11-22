@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Menu, User, LogOut, Search } from 'lucide-react';
+import { Menu, User, LogOut, Search, Bell } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { selectCurrentUser } from '@/lib/services/authSlice';
 import { Button } from '@/components/ui/button';
@@ -36,6 +36,7 @@ export default function StaffNavbar({
     : 'ST';
   const avatarUrl = user?.passport ? `data:image/jpeg;base64,${user.passport}` : '';
   const [hostelStagesEnabled, setHostelStagesEnabled] = useState<boolean | null>(null);
+  const { data: unreadCount = 0 } = useGetStaffUnreadCountQuery(undefined, { pollingInterval: 10000, refetchOnFocus: true });
 
   useEffect(() => {
     const fetchConfig = async () => {
@@ -136,6 +137,16 @@ export default function StaffNavbar({
             Welcome, {user?.fname || 'Staff'}
           </span>
 
+          {/* Notifications Bell */}
+          <Button variant="ghost" size="icon" className="relative" onClick={() => router.push('/staff/notifications')}>
+            <Bell className="h-5 w-5" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 inline-flex items-center justify-center rounded-full bg-red-600 text-white text-[10px] font-bold h-5 min-w-[20px] px-1">
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
+            )}
+          </Button>
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="relative size-12 rounded-full">
@@ -209,3 +220,4 @@ export default function StaffNavbar({
     </header>
   );
 }
+import { useGetStaffUnreadCountQuery } from '@/lib/services/staffApi';
