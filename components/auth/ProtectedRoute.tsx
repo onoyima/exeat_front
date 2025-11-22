@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { selectCurrentUser, selectIsAuthenticated } from '@/lib/services/authSlice';
@@ -14,8 +14,10 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
     const router = useRouter();
     const user = useSelector(selectCurrentUser);
     const isAuthenticated = useSelector(selectIsAuthenticated);
+    const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
+        setMounted(true);
         if (!isAuthenticated) {
             router.push('/login');
             return;
@@ -25,17 +27,24 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
             const userRole = user.role.toLowerCase();
             const required = requiredRole.toLowerCase();
 
-            // Handle role mapping - staff roles should be treated as "staff"
             const normalizedUserRole = userRole === 'student' ? 'student' : 'staff';
             const normalizedRequiredRole = required === 'student' ? 'student' : 'staff';
 
-            if (normalizedUserRole !== normalizedRequiredRole) {
+            if (normalizedRequiredRole !== 'student' && normalizedRequiredRole !== 'staff') {
+                const exeatRoles = Array.isArray((user as any)?.roles) ? (user as any).roles : [];
+                if (!exeatRoles.includes(required)) {
+                    router.push(normalizedUserRole === 'student' ? '/student/dashboard' : '/staff/dashboard');
+                }
+            } else if (normalizedUserRole !== normalizedRequiredRole) {
                 router.push(normalizedUserRole === 'student' ? '/student/dashboard' : '/staff/dashboard');
             }
         }
     }, [isAuthenticated, user, requiredRole, router]);
 
-    // Show nothing while checking auth
+    // Avoid hydration mismatch by rendering nothing until mounted
+    if (!mounted) {
+        return null;
+    }
     if (!isAuthenticated) {
         return null;
     }
@@ -44,11 +53,15 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
         const userRole = user.role.toLowerCase();
         const required = requiredRole.toLowerCase();
 
-        // Handle role mapping - staff roles should be treated as "staff"  
         const normalizedUserRole = userRole === 'student' ? 'student' : 'staff';
         const normalizedRequiredRole = required === 'student' ? 'student' : 'staff';
 
-        if (normalizedUserRole !== normalizedRequiredRole) {
+        if (normalizedRequiredRole !== 'student' && normalizedRequiredRole !== 'staff') {
+            const exeatRoles = Array.isArray((user as any)?.roles) ? (user as any).roles : [];
+            if (!exeatRoles.includes(required)) {
+                return null;
+            }
+        } else if (normalizedUserRole !== normalizedRequiredRole) {
             return null;
         }
     }

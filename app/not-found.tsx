@@ -50,11 +50,11 @@ export default function NotFound() {
                     className="space-y-4"
                 >
                     <p className="text-muted-foreground">
-                        Oops! It seems like you've ventured into uncharted territory.
-                        The page you're looking for doesn't exist or has been moved.
+                        Oops! It seems like you&apos;ve ventured into uncharted territory.
+                        The page you&apos;re looking for doesn&apos;t exist or has been moved.
                     </p>
                     <p className="text-sm text-muted-foreground/70">
-                        You'll be automatically redirected to the homepage in a few seconds...
+                        You&apos;ll be automatically redirected to the homepage in a few seconds...
                     </p>
                 </motion.div>
 

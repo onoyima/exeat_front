@@ -125,10 +125,27 @@ const StaffDashboard = () => {
     ], []);
 
     // Get user roles from staff profile
-    const userRoles = useMemo(() => {
-        if (!allRoles || allRoles.length === 0) return [];
-        return allRoles.map((role: any) => role.name);
+    const userRoles = useMemo<string[]>(() => {
+        if (!allRoles || allRoles.length === 0) return [] as string[];
+        return allRoles.map((role: any) => String(role.name));
     }, [allRoles]);
+
+    const assignedHostels = useMemo(() => {
+        if (!profile) return [] as string[];
+        const p: any = profile as any;
+        if (Array.isArray(p.assigned_hostels)) return p.assigned_hostels as string[];
+        if (p.personal && Array.isArray(p.personal.assigned_hostels)) return p.personal.assigned_hostels as string[];
+        return [] as string[];
+    }, [profile]);
+
+    const displayBadges = useMemo<string[]>(() => {
+        if (userRoles.length === 0) return [] as string[];
+        const others = userRoles.filter((r: string) => r !== 'hostel_admin');
+        const hostelLabels = assignedHostels.length > 0
+            ? assignedHostels.map((h: string) => `hostel_admin - ${h}`)
+            : (userRoles.includes('hostel_admin') ? ['hostel_admin'] : []);
+        return [...others, ...hostelLabels];
+    }, [userRoles, assignedHostels]);
 
     // Check if user is admin
     const isAdmin = userRoles.includes('admin');
@@ -173,9 +190,9 @@ const StaffDashboard = () => {
                 <p className="text-muted-foreground">
                     Welcome back, <span className="font-medium">{profile?.fname} {profile?.lname}</span>
                 </p>
-                {userRoles.length > 0 && (
+                {displayBadges.length > 0 && (
                     <div className="flex flex-wrap gap-2 mt-2">
-                        {userRoles.map((role: string, index: number) => (
+                        {displayBadges.map((role: string, index: number) => (
                             <span
                                 key={index}
                                 className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary"
@@ -229,7 +246,7 @@ const StaffDashboard = () => {
                                     No Roles Assigned
                                 </h3>
                                 <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                                    You don't have any exeat roles assigned yet. Please contact an administrator to get access to the system.
+                                    You don&apos;t have any exeat roles assigned yet. Please contact an administrator to get access to the system.
                                 </p>
                             </div>
                         </div>

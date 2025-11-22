@@ -85,7 +85,7 @@ export default function StudentCommentsPage() {
                             <MessageSquare className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
                             <h3 className="text-lg font-semibold mb-2">No Messages</h3>
                             <p className="text-sm text-muted-foreground">
-                                You don't have any messages from staff members yet. Messages will appear here when staff members send you comments about your exeat requests.
+                                You don&apos;t have any messages from staff members yet. Messages will appear here when staff members send you comments about your exeat requests.
                             </p>
                         </div>
                     ) : (

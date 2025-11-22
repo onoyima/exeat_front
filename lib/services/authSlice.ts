@@ -97,6 +97,36 @@ const authSlice = createSlice({
                 localStorage.setItem('user', JSON.stringify(userData));
             }
         },
+        updateRoles: (state, action: PayloadAction<string[]>) => {
+            if (state.user) {
+                const roles = action.payload || [];
+                state.user = { ...state.user, roles } as any;
+                if (isClient) {
+                    const storedUserRaw = localStorage.getItem('user');
+                    try {
+                        const storedUser = storedUserRaw ? JSON.parse(storedUserRaw) : {};
+                        localStorage.setItem('user', JSON.stringify({ ...storedUser, roles }));
+                    } catch {
+                        localStorage.setItem('user', JSON.stringify(state.user));
+                    }
+                }
+            }
+        },
+        updateAssignedHostels: (state, action: PayloadAction<string[]>) => {
+            if (isClient) {
+                const storedUserRaw = localStorage.getItem('user');
+                try {
+                    const storedUser = storedUserRaw ? JSON.parse(storedUserRaw) : {};
+                    localStorage.setItem('user', JSON.stringify({ ...storedUser, assigned_hostels: action.payload || [] }));
+                } catch {
+                    if (state.user) {
+                        const nextUser = { ...state.user, assigned_hostels: action.payload || [] } as any;
+                        localStorage.setItem('user', JSON.stringify(nextUser));
+                        state.user = nextUser;
+                    }
+                }
+            }
+        }
     },
     extraReducers: (builder) => {
         builder
@@ -145,7 +175,7 @@ const authSlice = createSlice({
     },
 });
 
-export const { startLoading, stopLoading, logout, setCredentials } = authSlice.actions;
+export const { startLoading, stopLoading, logout, setCredentials, updateRoles, updateAssignedHostels } = authSlice.actions;
 export default authSlice.reducer;
 
 // Selectors

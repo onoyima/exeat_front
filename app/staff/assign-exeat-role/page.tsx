@@ -630,7 +630,7 @@ export default function AssignExeatRolePage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Remove Role Assignment</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to remove the <strong>"{roleToUnassign?.roleName}"</strong> role from{" "}
+              Are you sure you want to remove the <strong>&quot;{roleToUnassign?.roleName}&quot;</strong> role from{" "}
               <strong>{roleToUnassign?.staffName}</strong>?
               <br />
               <br />

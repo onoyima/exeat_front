@@ -142,7 +142,7 @@ export default function StudentDashboard() {
             <div className="space-y-2 min-w-0 flex-1">
               <h1 className="text-2xl md:text-3xl font-bold leading-tight">Welcome back, {user?.fname}! 👋</h1>
               <p className="text-base md:text-lg text-muted-foreground leading-relaxed">
-                Here's an overview of your exeat requests and important information
+                Here&apos;s an overview of your exeat requests and important information
               </p>
             </div>
           </div>

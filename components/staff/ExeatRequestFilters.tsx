@@ -23,7 +23,10 @@ interface ExeatRequestFiltersProps {
     setDateFilter: (date: string) => void;
     categoryFilter: string;
     setCategoryFilter: (category: string) => void;
+    gateFilter?: string;
+    setGateFilter?: (value: string) => void;
     onClearFilters: () => void;
+    onDownload?: () => void;
 }
 
 export const ExeatRequestFilters: React.FC<ExeatRequestFiltersProps> = ({
@@ -35,9 +38,12 @@ export const ExeatRequestFilters: React.FC<ExeatRequestFiltersProps> = ({
     setDateFilter,
     categoryFilter,
     setCategoryFilter,
+    gateFilter = 'all',
+    setGateFilter,
     onClearFilters,
+    onDownload,
 }) => {
-    const hasActiveFilters = searchTerm || statusFilter !== 'all' || dateFilter !== 'all' || categoryFilter !== 'all';
+    const hasActiveFilters = searchTerm || statusFilter !== 'all' || dateFilter !== 'all' || categoryFilter !== 'all' || gateFilter !== 'all';
     const { data: categoriesData } = useGetCategoriesQuery();
     const categories = useMemo(() => categoriesData?.categories || [], [categoriesData]);
 
@@ -50,7 +56,7 @@ export const ExeatRequestFilters: React.FC<ExeatRequestFiltersProps> = ({
                 </CardTitle>
             </CardHeader>
             <CardContent>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 lg:gap-4">
                     {/* Search */}
                     <div className="space-y-2">
                         <label className="text-sm font-medium">Search</label>
@@ -119,6 +125,22 @@ export const ExeatRequestFilters: React.FC<ExeatRequestFiltersProps> = ({
                             </SelectContent>
                         </Select>
                     </div>
+
+                    {/* Gate Filter */}
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium">Gate Status</label>
+                        <Select value={gateFilter} onValueChange={setGateFilter!}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="All gate statuses" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All gate statuses</SelectItem>
+                                <SelectItem value="overdue">⏰ Overdue</SelectItem>
+                                <SelectItem value="signed_out">🚪 Signed Out</SelectItem>
+                                <SelectItem value="signed_in">🏫 Signed Back In</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
                 </div>
 
                 {/* Active Filters Display */}
@@ -130,7 +152,7 @@ export const ExeatRequestFilters: React.FC<ExeatRequestFiltersProps> = ({
                                 {searchTerm && (
                                     <Badge variant="secondary" className="flex items-center gap-1 bg-blue-100 text-blue-800 text-xs">
                                         <Search className="h-3 w-3" />
-                                        "{searchTerm}"
+                                        &quot;{searchTerm}&quot;
                                     </Badge>
                                 )}
                                 {statusFilter !== 'all' && (
@@ -154,15 +176,32 @@ export const ExeatRequestFilters: React.FC<ExeatRequestFiltersProps> = ({
                                                     dateFilter === 'quarter' ? 'This Quarter' : dateFilter}
                                     </Badge>
                                 )}
+                                {gateFilter !== 'all' && (
+                                    <Badge variant="secondary" className="flex items-center gap-1 bg-red-100 text-red-800 text-xs">
+                                        <Clock className="h-3 w-3" />
+                                        {gateFilter === 'overdue' ? 'Overdue' : gateFilter === 'signed_out' ? 'Signed Out' : 'Signed Back In'}
+                                    </Badge>
+                                )}
                             </div>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={onClearFilters}
-                                className="border-slate-300 hover:bg-slate-100 self-start sm:self-auto"
-                            >
-                                ✕ Clear All
-                            </Button>
+                            <div className="flex items-center gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={onClearFilters}
+                                    className="border-slate-300 hover:bg-slate-100"
+                                >
+                                    ✕ Clear All
+                                </Button>
+                                {onDownload && (
+                                    <Button
+                                        size="sm"
+                                        onClick={onDownload}
+                                        className="bg-primary text-white"
+                                    >
+                                        ⬇️ Download CSV
+                                    </Button>
+                                )}
+                            </div>
                         </div>
                     </div>
                 )}

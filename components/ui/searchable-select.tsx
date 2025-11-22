@@ -103,17 +103,6 @@ export function SearchableSelect({
             placeholder={searchPlaceholder}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            onKeyDown={(e) => {
-              // Prevent form submission when Enter is pressed in search input
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                e.stopPropagation();
-                // If there's only one filtered option, select it
-                if (filteredOptions.length === 1) {
-                  handleSelect(filteredOptions[0].value);
-                }
-              }
-            }}
             className="pl-9 pr-9 h-10"
             autoFocus
           />

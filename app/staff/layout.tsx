@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux';
 import { selectCurrentUser } from '@/lib/services/authSlice';
 import StaffSidebar from '@/components/staff/StaffSidebar';
 import StaffNavbar from '@/components/staff/StaffNavbar';
+import SoundNotifier from '@/components/notifications/SoundNotifier';
 
 export default function StaffLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -68,6 +69,7 @@ export default function StaffLayout({ children }: { children: React.ReactNode })
     <div className="h-screen bg-gray-100 overflow-hidden">
       <div className="flex flex-col h-full">
         <StaffNavbar onMenuClick={() => setSidebarOpen(true)} />
+        <SoundNotifier />
         <div className="flex flex-1 relative overflow-hidden pt-[116px] md:pt-14">
           <StaffSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
           <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 lg:ml-[280px] bg-gray-100">

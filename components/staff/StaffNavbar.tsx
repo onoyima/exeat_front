@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Menu, User, LogOut, Search } from 'lucide-react';
@@ -35,6 +35,24 @@ export default function StaffNavbar({
     ? `${user.fname?.[0] || ''}${user.lname?.[0] || ''}`.toUpperCase()
     : 'ST';
   const avatarUrl = user?.passport ? `data:image/jpeg;base64,${user.passport}` : '';
+  const [hostelStagesEnabled, setHostelStagesEnabled] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+        const res = await fetch('https://attendance.veritas.edu.ng/api/config/hostel-stages', {
+          headers: token ? { Authorization: `Bearer ${token}` } : {}
+        });
+        const json = await res.json();
+        const enabled = !!json?.hostel_stages_enabled;
+        setHostelStagesEnabled(enabled);
+      } catch (e) {
+        setHostelStagesEnabled(null);
+      }
+    };
+    fetchConfig();
+  }, []);
 
 
   const handleLogoutClick = () => {
@@ -85,7 +103,16 @@ export default function StaffNavbar({
             </span>
           </div>
           <div className="hidden lg:block h-4 w-px bg-border mx-2" />
-          <div className="text-sm font-medium">Digital Exeat System - Staff</div>
+          <div className="flex items-center gap-2">
+            <div className="text-sm font-medium">Digital Exeat System - Staff</div>
+            {hostelStagesEnabled !== null && (
+              <span
+                className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${hostelStagesEnabled ? 'bg-green-100 text-green-800 border-green-200' : 'bg-red-100 text-red-800 border-red-200'}`}
+              >
+                Hostel Stages: {hostelStagesEnabled ? 'Enabled' : 'Disabled'}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Navbar Search (Student ID) - compact, doesn't push logo */}

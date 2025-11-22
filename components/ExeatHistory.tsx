@@ -296,7 +296,7 @@ export default function ExeatHistory({ applications }: ExeatHistoryProps) {
                         <p className="font-medium text-green-800">{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}</p>
                         <p className="text-sm text-green-700">Approved on {new Date(approval.date).toLocaleString()}</p>
                         {approval.comment && (
-                          <p className="text-sm text-green-600 mt-1">"{approval.comment}"</p>
+                          <p className="text-sm text-green-600 mt-1">&quot;{approval.comment}&quot;</p>
                         )}
                       </div>
                     </div>

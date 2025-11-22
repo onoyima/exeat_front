@@ -35,7 +35,7 @@ export default function PaymentErrorPage() {
                     </div>
                     <CardTitle className="text-2xl text-red-700">Payment Verification Failed</CardTitle>
                     <CardDescription className="text-lg">
-                        We encountered an issue while verifying your payment. Don't worry, we're here to help.
+                        We encountered an issue while verifying your payment. Don&apos;t worry, we&apos;re here to help.
                     </CardDescription>
                 </CardHeader>
 

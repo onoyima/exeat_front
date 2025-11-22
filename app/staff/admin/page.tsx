@@ -13,14 +13,17 @@ import { useGetCurrentUser } from '@/hooks/use-current-user';
 import { useRouter } from 'next/navigation';
 import {
     Users,
+    Shield,
     FileText,
     CheckCircle2,
     Clock,
     XCircle,
     TrendingUp,
+    AlertCircle,
     ArrowRight,
     Plus,
     Activity,
+    Server,
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -46,7 +49,7 @@ export default function AdminDashboard() {
             // keep modal open to allow retry or cancel
         }
     };
-    const { data: dashboardStats } = useGetAdminDashboardStatsQuery() as {
+    const { data: dashboardStats, isLoading: dashboardStatsLoading } = useGetAdminDashboardStatsQuery() as {
         data: AdminDashboardResponse['data'] | undefined;
         isLoading: boolean;
     };
@@ -107,21 +110,44 @@ export default function AdminDashboard() {
             {/* System Overview Stats */}
             {
                 dashboardStats && (
-                    <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+                    <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+                        <StatsCard
+                            title="Total Students"
+                            value={dashboardStats.overview.total_students}
+                            description="Registered students"
+                            icon={Users}
+                            className="border-l-4 border-l-primary"
+                        />
+                        <StatsCard
+                            title="Total Staff"
+                            value={dashboardStats.overview.total_staff}
+                            description="Active staff members"
+                            icon={Shield}
+                            className="border-l-4 border-l-green-500"
+                        />
                         <StatsCard
                             title="Pending Exeats"
                             value={dashboardStats.overview.active_exeats}
                             description="Currently active"
-                            icon={Clock}
+                            icon={Activity}
                             className="border-l-4 border-l-blue-500"
                         />
                         <StatsCard
                             title="Students on Exeat"
                             value={dashboardStats.overview.student_away}
                             description="Students on exeat"
-                            icon={Users}
+                            icon={Server}
                             className="border-l-4 border-l-purple-500"
                         />
+                    </div>
+                )
+            }
+
+
+            {/* Exeat Statistics */}
+            {
+                dashboardStats && (
+                    <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
                         <StatsCard
                             title="Total Requests"
                             value={dashboardStats.exeat_statistics.total_requests}
@@ -146,6 +172,7 @@ export default function AdminDashboard() {
                     </div>
                 )
             }
+
 
             {/* Audit Trail & Recent Activities */}
             {
