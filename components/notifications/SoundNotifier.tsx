@@ -12,10 +12,7 @@ export default function SoundNotifier() {
   const roles: string[] = Array.isArray(currentUser?.roles) ? currentUser.roles : [];
   const [enabled, setEnabled] = useState<boolean>(true);
   //   const API_BASE_URL = (typeof window !== 'undefined' && window.location.hostname === 'attendance.veritas.edu.ng')
-  const API_BASE_URL = (typeof window !== 'undefined' && window.location.hostname === 'attendance.veritas.edu.ng')
-    // ? 'https://attendance.veritas.edu.ng/api'
-    ? 'https://attendance.veritas.edu.ng/api'
-    : 'http://localhost:8000/api';
+  const API_BASE_URL = 'https://attendance.veritas.edu.ng/api'
   const dispatch = useDispatch();
   const retryDelayRef = useRef<number>(2000);
   const reconnectTimerRef = useRef<any>(null);
