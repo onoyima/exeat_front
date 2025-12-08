@@ -1,4 +1,6 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
+import { useDispatch } from 'react-redux';
+import { updateRoles, updateAssignedHostels } from '@/lib/services/authSlice';
 import {
     useGetStaffProfileQuery,
     useGetAllExeatRequestsQuery,
@@ -21,29 +23,34 @@ import { canEditExeat, getEditableFields } from '@/lib/utils/exeat';
  * Provides role-based permissions and exeat request management
  */
 export const useStaff = () => {
-    const { data: profile, isLoading: profileLoading, error: profileError } = useGetStaffProfileQuery();
+    const { data: profile, isLoading: profileLoading, error: profileError } = useGetStaffProfileQuery(undefined, { refetchOnMountOrArgChange: true, refetchOnFocus: true, refetchOnReconnect: true });
+    const dispatch = useDispatch();
+
+    useEffect(() => {
+        if (profile) {
+            const apiRoleNames = Array.isArray((profile as any)?.exeat_roles)
+                ? (profile as any).exeat_roles.map((r: any) => extractRoleName(r))
+                : Array.isArray((profile as any)?.roles)
+                    ? ((profile as any).roles as string[])
+                    : [];
+            dispatch(updateRoles(apiRoleNames));
+
+            const p: any = profile as any;
+            const hostels = Array.isArray(p?.assigned_hostels)
+                ? p.assigned_hostels
+                : Array.isArray(p?.personal?.assigned_hostels)
+                    ? p.personal.assigned_hostels
+                    : [];
+            if (hostels.length) {
+                dispatch(updateAssignedHostels(hostels));
+            }
+        }
+    }, [profile, dispatch]);
     const { data: statistics, isLoading: statsLoading } = useGetExeatStatisticsQuery();
 
     // Role-based access control
     const hasRole = useMemo(() => {
         return (roleName: string) => {
-            // First check localStorage roles array (most direct and reliable)
-            try {
-                if (typeof window !== 'undefined') {
-                    const userStr = localStorage.getItem('user');
-                    if (userStr) {
-                        const user = JSON.parse(userStr);
-                        // Check roles array first (primary source)
-                        if (user.roles && Array.isArray(user.roles) && user.roles.includes(roleName)) {
-                            return true;
-                        }
-                    }
-                }
-            } catch (e) {
-                console.error('Error checking localStorage for roles:', e);
-            }
-
-            // Then check profile from API
             if (profile?.exeat_roles) {
                 const apiRoles = profile.exeat_roles.map((role: any) => extractRoleName(role));
                 if (apiRoles.includes(roleName)) {
@@ -51,12 +58,21 @@ export const useStaff = () => {
                 }
             }
 
-            // Fallback to exeat_roles in localStorage
+            if (profile && Array.isArray((profile as any).roles)) {
+                const roleNames = ((profile as any).roles as string[]).map((r) => String(r));
+                if (roleNames.includes(roleName)) {
+                    return true;
+                }
+            }
+
             try {
                 if (typeof window !== 'undefined') {
                     const userStr = localStorage.getItem('user');
                     if (userStr) {
                         const user = JSON.parse(userStr);
+                        if (user.roles && Array.isArray(user.roles) && user.roles.includes(roleName)) {
+                            return true;
+                        }
                         if (user.exeat_roles && Array.isArray(user.exeat_roles)) {
                             const localRoles = user.exeat_roles.map((role: any) =>
                                 role.role?.name || (typeof role.role === 'string' ? role.role : '')
@@ -68,7 +84,7 @@ export const useStaff = () => {
                     }
                 }
             } catch (e) {
-                console.error('Error checking localStorage exeat_roles:', e);
+                console.error('Error checking localStorage for roles:', e);
             }
 
             return false;
@@ -87,18 +103,25 @@ export const useStaff = () => {
 
     // Get all roles (from API profile or localStorage)
     const allRoles = useMemo(() => {
-        // First try to get from API profile
-        if (profile?.exeat_roles && profile.exeat_roles.length > 0) {
-            return profile.exeat_roles.map((role: any) => role.role);
+        if (profile) {
+            if (Array.isArray((profile as any).exeat_roles)) {
+                return (profile as any).exeat_roles.map((role: any) => role.role);
+            }
+            if (Array.isArray((profile as any).roles)) {
+                return ((profile as any).roles as string[]).map((roleName: string) => ({
+                    name: roleName,
+                    display_name: roleName.charAt(0).toUpperCase() + roleName.slice(1).replace('_', ' '),
+                    description: ''
+                }));
+            }
+            return [];
         }
 
-        // Fallback to localStorage roles array
         if (typeof window !== 'undefined') {
             try {
                 const userStr = localStorage.getItem('user');
                 if (userStr) {
                     const user = JSON.parse(userStr);
-                    // If roles array exists, convert it to the expected format
                     if (user.roles && Array.isArray(user.roles) && user.roles.length > 0) {
                         return user.roles.map((roleName: string) => ({
                             name: roleName,
@@ -113,6 +136,25 @@ export const useStaff = () => {
         }
 
         return [];
+    }, [profile]);
+
+    const assignedHostels = useMemo(() => {
+        if (profile && (profile as any)?.personal && Array.isArray((profile as any).personal.assigned_hostels)) {
+            return (profile as any).personal.assigned_hostels as string[];
+        }
+        if (profile && Array.isArray((profile as any).assigned_hostels)) {
+            return (profile as any).assigned_hostels as string[];
+        }
+        if (typeof window !== 'undefined') {
+            try {
+                const userStr = localStorage.getItem('user');
+                if (userStr) {
+                    const user = JSON.parse(userStr);
+                    if (Array.isArray(user.assigned_hostels)) return user.assigned_hostels as string[];
+                }
+            } catch {}
+        }
+        return [] as string[];
     }, [profile]);
 
     // Role-specific permissions
@@ -215,22 +257,23 @@ export const useStaff = () => {
 
     // Get user profile with fallback to localStorage
     const userProfile = useMemo(() => {
-        // Use API profile if available
-        if (profile) return profile;
+        let result: any = profile ? { ...(profile as any) } : null;
 
-        // Fallback to localStorage
         if (typeof window !== 'undefined') {
             try {
                 const userStr = localStorage.getItem('user');
-                if (userStr) {
-                    return JSON.parse(userStr);
+                const localUser = userStr ? JSON.parse(userStr) : null;
+                if (!result && localUser) result = localUser;
+                if (result && localUser) {
+                    if (!result.fname && localUser.fname) result.fname = localUser.fname;
+                    if (!result.lname && localUser.lname) result.lname = localUser.lname;
+                    if (!Array.isArray(result.roles) && Array.isArray(localUser.roles)) result.roles = localUser.roles;
+                    if (!Array.isArray(result.assigned_hostels) && Array.isArray(localUser.assigned_hostels)) result.assigned_hostels = localUser.assigned_hostels;
                 }
-            } catch (e) {
-                console.error('Error reading user from localStorage:', e);
-            }
+            } catch {}
         }
 
-        return null;
+        return result;
     }, [profile]);
 
     return {
@@ -254,7 +297,8 @@ export const useStaff = () => {
         canVetMedical,
         canSignStudents,
         canOverrideApprovals,
-
+        assignedHostels,
+        
         // Role-specific requests
         getRoleSpecificRequests,
 

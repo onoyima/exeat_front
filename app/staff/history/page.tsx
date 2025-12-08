@@ -24,9 +24,11 @@ import {
 import { format } from 'date-fns';
 import { FileText, Search, Calendar, MapPin, CheckCircle2, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
+import { useStaff } from '@/hooks/use-staff';
 import { useRouter } from 'next/navigation';
 
 export default function StaffHistoryPage() {
+    const { assignedHostels } = useStaff();
     const [page, setPage] = useState(1);
     const [perPage] = useState(50);
     const [search, setSearch] = useState('');
@@ -141,9 +143,14 @@ export default function StaffHistoryPage() {
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
                         <div>
                             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Staff Exeat History</h1>
-                            <p className="text-muted-foreground mt-1">
-                                View all your completed exeat requests
-                            </p>
+                            <p className="text-muted-foreground mt-1">View all your completed exeat requests</p>
+                            {assignedHostels && assignedHostels.length > 0 && (
+                                <div className="flex flex-wrap gap-2 mt-2">
+                                    {assignedHostels.map((h: string, i: number) => (
+                                        <Badge key={i} variant="secondary">{h}</Badge>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
 

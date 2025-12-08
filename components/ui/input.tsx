@@ -1,6 +1,8 @@
+'use client';
+
 import * as React from 'react';
 import { cn } from '@/lib/utils';
-import { Label } from './label'; // <-- Make sure this path is correct
+import { Label } from './label';
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -8,7 +10,8 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, type, label, id, ...props }, ref) => {
-    const inputId = id || React.useId();
+    const generatedId = React.useId();
+    const inputId = id ?? generatedId;
 
     return (
       <div className="space-y-1">

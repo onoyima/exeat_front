@@ -156,7 +156,7 @@ export default function PayDebtPage() {
                         <CreditCard className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
                         <h3 className="text-lg font-semibold mb-2">Debt Not Found</h3>
                         <p className="text-muted-foreground mb-4">
-                            The debt you're looking for doesn't exist or has been removed.
+                            The debt you&apos;re looking for doesn&apos;t exist or has been removed.
                         </p>
                         <Button asChild>
                             <Link href="/student/debts">Back to Debts</Link>
@@ -230,7 +230,7 @@ export default function PayDebtPage() {
                             Debt Details
                         </CardTitle>
                         <CardDescription>
-                            Information about the debt you're paying
+                            Information about the debt you&apos;re paying
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">

@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Menu, User, LogOut, Search } from 'lucide-react';
+import { Menu, User, LogOut, Search, Bell } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { selectCurrentUser } from '@/lib/services/authSlice';
 import { Button } from '@/components/ui/button';
@@ -35,6 +35,25 @@ export default function StaffNavbar({
     ? `${user.fname?.[0] || ''}${user.lname?.[0] || ''}`.toUpperCase()
     : 'ST';
   const avatarUrl = user?.passport ? `data:image/jpeg;base64,${user.passport}` : '';
+  const [hostelStagesEnabled, setHostelStagesEnabled] = useState<boolean | null>(null);
+  const { data: unreadCount = 0 } = useGetStaffUnreadCountQuery(undefined, { pollingInterval: 10000, refetchOnFocus: true });
+
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+        const res = await fetch('https://attendance.veritas.edu.ng/api/config/hostel-stages', {
+          headers: token ? { Authorization: `Bearer ${token}` } : {}
+        });
+        const json = await res.json();
+        const enabled = !!json?.hostel_stages_enabled;
+        setHostelStagesEnabled(enabled);
+      } catch (e) {
+        setHostelStagesEnabled(null);
+      }
+    };
+    fetchConfig();
+  }, []);
 
 
   const handleLogoutClick = () => {
@@ -85,7 +104,16 @@ export default function StaffNavbar({
             </span>
           </div>
           <div className="hidden lg:block h-4 w-px bg-border mx-2" />
-          <div className="text-sm font-medium">Digital Exeat System - Staff</div>
+          <div className="flex items-center gap-2">
+            <div className="text-sm font-medium">Digital Exeat System - Staff</div>
+            {hostelStagesEnabled !== null && (
+              <span
+                className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${hostelStagesEnabled ? 'bg-green-100 text-green-800 border-green-200' : 'bg-red-100 text-red-800 border-red-200'}`}
+              >
+                Hostel Stages: {hostelStagesEnabled ? 'Enabled' : 'Disabled'}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Navbar Search (Student ID) - compact, doesn't push logo */}
@@ -108,6 +136,16 @@ export default function StaffNavbar({
           <span className="hidden sm:block text-sm text-muted-foreground">
             Welcome, {user?.fname || 'Staff'}
           </span>
+
+          {/* Notifications Bell */}
+          <Button variant="ghost" size="icon" className="relative" onClick={() => router.push('/staff/notifications')}>
+            <Bell className="h-5 w-5" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 inline-flex items-center justify-center rounded-full bg-red-600 text-white text-[10px] font-bold h-5 min-w-[20px] px-1">
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
+            )}
+          </Button>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -182,3 +220,4 @@ export default function StaffNavbar({
     </header>
   );
 }
+import { useGetStaffUnreadCountQuery } from '@/lib/services/staffApi';

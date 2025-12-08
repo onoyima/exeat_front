@@ -64,7 +64,7 @@ export default function StaffSearchResultsPage() {
                             <AlertCircle className="h-10 w-10 text-slate-400" />
                         </div>
                         <h3 className="text-lg font-semibold text-slate-800 mb-2 text-center">No results</h3>
-                        <p className="text-slate-600 text-center max-w-md mb-4">We couldn't find any exeat requests for the provided Student ID.</p>
+                        <p className="text-slate-600 text-center max-w-md mb-4">We couldn&apos;t find any exeat requests for the provided Student ID.</p>
                         <div className="flex gap-2">
                             <Button variant="outline" onClick={() => router.back()}>Go Back</Button>
                         </div>

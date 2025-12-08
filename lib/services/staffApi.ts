@@ -57,8 +57,33 @@ export const staffApi = api.injectEndpoints({
         // Get staff profile with roles
         getStaffProfile: builder.query<StaffProfile, void>({
             query: () => '/me',
-            transformResponse: (response: { user: StaffProfile; contacts: any[]; exeat_roles: any[]; role: string; roles: string[]; token: string; message: string }) => {
-                return response.user;
+            transformResponse: (response: any) => {
+                const base = response?.profile ?? response?.user ?? response ?? {};
+                const profile: any = { ...base };
+
+                // Merge top-level roles and assigned hostels into profile for easier consumption
+                if (Array.isArray(response?.roles)) profile.roles = response.roles;
+                if (Array.isArray(response?.assigned_hostels)) profile.assigned_hostels = response.assigned_hostels;
+
+                // Normalize exeat roles: prefer profile.exeat_roles, else use profile.personal.exeat_roles
+                const personalRoles = Array.isArray(profile?.personal?.exeat_roles) ? profile.personal.exeat_roles : [];
+                if (!Array.isArray(profile?.exeat_roles) && personalRoles.length > 0) {
+                    profile.exeat_roles = personalRoles.map((r: any) => ({
+                        role: {
+                            name: r?.name,
+                            display_name: r?.display_name ?? (typeof r?.name === 'string' ? r.name.replace('_', ' ').toUpperCase() : ''),
+                            description: r?.description ?? '',
+                        }
+                    }));
+                }
+
+                // Derive top-level name fields for convenience in UI
+                if (!profile.fname && profile?.personal?.fname) profile.fname = profile.personal.fname;
+                if (!profile.lname && (profile?.personal?.last_name || profile?.personal?.lname)) {
+                    profile.lname = profile.personal.last_name ?? profile.personal.lname;
+                }
+
+                return profile as StaffProfile;
             },
             providesTags: ['Profile'],
         }),
@@ -231,6 +256,64 @@ export const staffApi = api.injectEndpoints({
             }),
             invalidatesTags: ['ExeatRequests'],
         }),
+
+        // ===== NOTIFICATIONS =====
+        getStaffNotifications: builder.query<{ items: any[]; pagination: any }, { page?: number; per_page?: number; read_status?: 'unread'|'read' } | void>({
+            query: (params) => ({
+                url: '/staff/notifications',
+                params,
+            }),
+            transformResponse: (response: any) => {
+                const items = Array.isArray(response)
+                    ? response
+                    : (response?.data?.notifications ?? response?.notifications ?? response?.data ?? []);
+                const pagination = response?.pagination ?? null;
+                return { items, pagination };
+            },
+            providesTags: ['Notifications'],
+        }),
+        getStaffUnreadCount: builder.query<number, void>({
+            query: () => '/staff/notifications/unread-count',
+            transformResponse: (response: any) => {
+                if (typeof response === 'number') return response;
+                if (response?.data?.unread_count != null) return Number(response.data.unread_count) || 0;
+                if (response?.unread_count != null) return Number(response.unread_count) || 0;
+                return 0;
+            },
+            providesTags: ['Notifications'],
+        }),
+        markStaffNotificationRead: builder.mutation<{ success?: boolean }, number>({
+            query: (id) => ({
+                url: `/staff/notifications/mark-read`,
+                method: 'POST',
+                body: { notification_ids: [id] },
+            }),
+            invalidatesTags: ['Notifications'],
+        }),
+        markAllStaffNotificationsRead: builder.mutation<{ success?: boolean; data?: { marked_count: number } }, void>({
+            query: () => ({
+                url: `/staff/notifications/mark-read`,
+                method: 'POST',
+                body: { mark_all: true },
+            }),
+            invalidatesTags: ['Notifications'],
+        }),
+
+        // ===== GATE EVENTS (HOSTEL ADMIN) =====
+        getGateEvents: builder.query<{ items: any[]; pagination: any }, { page?: number; per_page?: number; checked?: 'all'|'in'|'out'; search?: string; sort_by?: string; order?: 'asc'|'desc' }>({
+            query: ({ page = 1, per_page = 20, checked = 'all', search = '', sort_by, order } = {}) => ({
+                url: '/staff/gate-events',
+                params: { page, per_page, checked, search, ...(sort_by ? { sort_by } : {}), ...(order ? { order } : {}) },
+            }),
+            transformResponse: (response: any) => ({ items: response?.data ?? [], pagination: response?.pagination ?? null }),
+            providesTags: ['ExeatRequests'],
+        }),
+        exportGateEvents: builder.query<Blob, { checked?: 'all'|'in'|'out'; search?: string; format?: 'csv'|'xls'|'pdf' }>({
+            query: ({ checked = 'all', search = '', format = 'csv' } = {}) => ({
+                url: '/staff/gate-events/export',
+                params: { checked, search, format },
+            }),
+        }),
     }),
 });
 
@@ -254,4 +337,10 @@ export const {
     useEditExeatRequestMutation,
     useDeanApplyExeatRequestMutation,
     useDeanBulkApproveExeatsMutation,
+    useGetStaffNotificationsQuery,
+    useGetStaffUnreadCountQuery,
+    useMarkStaffNotificationReadMutation,
+    useMarkAllStaffNotificationsReadMutation,
+    useGetGateEventsQuery,
+    useExportGateEventsQuery,
 } = staffApi;

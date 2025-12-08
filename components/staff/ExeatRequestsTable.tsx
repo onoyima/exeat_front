@@ -284,8 +284,8 @@ export const ExeatRequestsTable: React.FC<ExeatRequestsTableProps> = ({
                                                         )}
                                                     </div>
                                                 </div>
-                                                {/* Countdown Timer - Show only when student has left (security_signin) */}
-                                                {r.status === 'security_signin' && r.departure_date && r.return_date && (
+                                                {/* Countdown Timer - Show only when student has left (security_signout) */}
+                                                {r.status === 'security_signout' && r.departure_date && r.return_date && (
                                                     <div className="mt-2 max-w-full">
                                                         <ExeatCountdown
                                                             departureDate={r.departure_date}

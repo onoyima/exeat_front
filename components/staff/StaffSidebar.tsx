@@ -20,6 +20,8 @@ import {
   Building2,
   CreditCard,
   FileText,
+  Bell,
+  CheckCircle2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -151,6 +153,13 @@ export default function StaffSidebar({
             <NavLink href="/staff/pending" icon={Clock}>
               Pending Exeats
             </NavLink>
+
+        <NavLink href="/staff/notifications" icon={Bell}>
+          Notifications
+        </NavLink>
+        <NavLink href="/staff/gate-events" icon={CheckCircle2}>
+          Gate Events
+        </NavLink>
 
             <NavLink href="/staff/history" icon={History}>
               Completed Exeats

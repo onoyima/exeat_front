@@ -8,9 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { SearchableSelect, type SearchableSelectOption } from '@/components/ui/searchable-select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useGetHostelAssignmentOptionsQuery, useCreateHostelAssignmentMutation, useGetStaffListQuery } from '@/lib/services/adminApi';
-import { Building2, User, ArrowLeft, Save, Loader2, AlertCircle } from 'lucide-react';
+import { Building2, User, ArrowLeft, Save, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from '@/hooks/use-toast';
 
@@ -23,7 +22,6 @@ export default function CreateHostelAssignmentPage() {
         notes: '',
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [validationError, setValidationError] = useState<string | null>(null);
 
     const { data: options, isLoading: optionsLoading } = useGetHostelAssignmentOptionsQuery({
         per_page: 100,
@@ -34,7 +32,7 @@ export default function CreateHostelAssignmentPage() {
 
     const [createAssignment] = useCreateHostelAssignmentMutation();
 
-    const hostels = options?.hostels?.data || [];
+    const hostels = useMemo(() => options?.hostels?.data ?? [], [options]);
 
     // Convert hostels to searchable options
     const hostelOptions: SearchableSelectOption[] = useMemo(() => {
@@ -57,70 +55,28 @@ export default function CreateHostelAssignmentPage() {
     }, [staffList]);
 
     // Keep original data for preview
-    const staff = useMemo(() => {
-        if (!staffList) return [];
-        return staffList.map(s => ({
-            id: s.id,
-            fname: s.fname,
-            lname: s.lname,
-            middle_name: s.middle_name,
-            email: s.email
-        }));
-    }, [staffList]);
+    const staff = staffList ? staffList.map(staff => ({
+        id: staff.id,
+        fname: staff.fname,
+        lname: staff.lname,
+        middle_name: staff.middle_name,
+        email: staff.email
+    })) : [];
 
     const handleInputChange = (field: string, value: string | boolean) => {
         setFormData(prev => ({
             ...prev,
             [field]: value
         }));
-        // Clear validation error when user makes changes
-        if (validationError) {
-            setValidationError(null);
-        }
-    };
-
-    const handleHostelChange = (value: string) => {
-        handleInputChange('vuna_accomodation_id', value);
-    };
-
-    const handleStaffChange = (value: string) => {
-        handleInputChange('staff_id', value);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        e.stopPropagation();
-        setValidationError(null);
 
-        // Validate form fields with specific messages
-        if (!formData.vuna_accomodation_id && !formData.staff_id) {
-            const errorMessage = "Please select both a hostel and staff member.";
-            setValidationError(errorMessage);
+        if (!formData.vuna_accomodation_id || !formData.staff_id) {
             toast({
                 title: "Validation Error",
-                description: errorMessage,
-                variant: "destructive",
-            });
-            return;
-        }
-
-        if (!formData.vuna_accomodation_id) {
-            const errorMessage = "Please select a hostel.";
-            setValidationError(errorMessage);
-            toast({
-                title: "Validation Error",
-                description: errorMessage,
-                variant: "destructive",
-            });
-            return;
-        }
-
-        if (!formData.staff_id) {
-            const errorMessage = "Please select a staff member.";
-            setValidationError(errorMessage);
-            toast({
-                title: "Validation Error",
-                description: errorMessage,
+                description: "Please select both a hostel and staff member.",
                 variant: "destructive",
             });
             return;
@@ -173,15 +129,6 @@ export default function CreateHostelAssignmentPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
-                {/* Validation Error Alert */}
-                {validationError && (
-                    <Alert variant="destructive" className="mb-4">
-                        <AlertCircle className="h-4 w-4" />
-                        <AlertTitle>Validation Error</AlertTitle>
-                        <AlertDescription>{validationError}</AlertDescription>
-                    </Alert>
-                )}
-
                 <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
                     {/* Assignment Form */}
                     <Card>
@@ -201,7 +148,7 @@ export default function CreateHostelAssignmentPage() {
                                 <SearchableSelect
                                     options={hostelOptions}
                                     value={formData.vuna_accomodation_id}
-                                    onValueChange={handleHostelChange}
+                                    onValueChange={(value) => handleInputChange('vuna_accomodation_id', value)}
                                     placeholder="Select a hostel"
                                     searchPlaceholder="Search hostels by name or gender..."
                                     emptyMessage="No hostels found"
@@ -209,9 +156,6 @@ export default function CreateHostelAssignmentPage() {
                                 />
                                 {optionsLoading && (
                                     <p className="text-sm text-muted-foreground">Loading hostels...</p>
-                                )}
-                                {!formData.vuna_accomodation_id && validationError && (
-                                    <p className="text-sm text-destructive">Please select a hostel</p>
                                 )}
                             </div>
 
@@ -221,7 +165,7 @@ export default function CreateHostelAssignmentPage() {
                                 <SearchableSelect
                                     options={staffOptions}
                                     value={formData.staff_id}
-                                    onValueChange={handleStaffChange}
+                                    onValueChange={(value) => handleInputChange('staff_id', value)}
                                     placeholder="Select a staff member"
                                     searchPlaceholder="Search staff by name or email..."
                                     emptyMessage="No staff members found"
@@ -229,9 +173,6 @@ export default function CreateHostelAssignmentPage() {
                                 />
                                 {(optionsLoading || staffListLoading) && (
                                     <p className="text-sm text-muted-foreground">Loading staff...</p>
-                                )}
-                                {!formData.staff_id && validationError && (
-                                    <p className="text-sm text-destructive">Please select a staff member</p>
                                 )}
                             </div>
 
