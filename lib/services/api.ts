@@ -3,8 +3,8 @@ import type { RootState } from '@/lib/store';
 
 // Use proxy URL for development, direct URL for production
 // const API_BASE_URL = 'http://localhost:8000/api';
-// const API_BASE_URL = 'https://attendance.veritas.edu.ng/api';
-const API_BASE_URL = 'https://testexeat.veritas.edu.ng/api';
+const API_BASE_URL = 'https://attendance.veritas.edu.ng/api';
+// const API_BASE_URL = 'https://testexeat.veritas.edu.ng/api';    
 
 // Get token from Redux state
 const getAuthToken = (getState: () => RootState) => {

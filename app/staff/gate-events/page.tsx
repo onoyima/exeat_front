@@ -26,7 +26,7 @@ export default function GateEventsPage() {
 
   const onDownload = async () => {
     const host = typeof window !== 'undefined' ? window.location.hostname : '';
-    const API_BASE_URL = host === 'testexeat.veritas.edu.ng' ? 'https://testexeat.veritas.edu.ng/api' : 'http://localhost:8000/api';
+    const API_BASE_URL = host === 'attendance.veritas.edu.ng' ? 'https://attendance.veritas.edu.ng/api' : 'http://localhost:8000/api';
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
     const url = new URL(`${API_BASE_URL}/staff/gate-events/export`);
     url.searchParams.set('checked', checked);

@@ -11,10 +11,10 @@ export default function SoundNotifier() {
   const currentUser = useSelector(selectCurrentUser) as any;
   const roles: string[] = Array.isArray(currentUser?.roles) ? currentUser.roles : [];
   const [enabled, setEnabled] = useState<boolean>(true);
-//   const API_BASE_URL = (typeof window !== 'undefined' && window.location.hostname === 'attendance.veritas.edu.ng')
-  const API_BASE_URL = (typeof window !== 'undefined' && window.location.hostname === 'testexeat.veritas.edu.ng')
-     // ? 'https://attendance.veritas.edu.ng/api'
-    ? 'https://testexeat.veritas.edu.ng/api'
+  //   const API_BASE_URL = (typeof window !== 'undefined' && window.location.hostname === 'attendance.veritas.edu.ng')
+  const API_BASE_URL = (typeof window !== 'undefined' && window.location.hostname === 'attendance.veritas.edu.ng')
+    // ? 'https://attendance.veritas.edu.ng/api'
+    ? 'https://attendance.veritas.edu.ng/api'
     : 'http://localhost:8000/api';
   const dispatch = useDispatch();
   const retryDelayRef = useRef<number>(2000);
@@ -34,7 +34,7 @@ export default function SoundNotifier() {
         }
         const ctx = audioCtxRef.current!;
         if (ctx.state === 'suspended') {
-          await ctx.resume().catch(() => {});
+          await ctx.resume().catch(() => { });
         }
         const res = await fetch(audioUrl, { cache: 'no-store' });
         if (!res.ok) throw new Error('audio fetch failed');
@@ -64,7 +64,7 @@ export default function SoundNotifier() {
             }
             const ctx = audioCtxRef.current!;
             if (ctx.state === 'suspended') {
-              await ctx.resume().catch(() => {});
+              await ctx.resume().catch(() => { });
             }
             const oscillator = ctx.createOscillator();
             const gainNode = ctx.createGain();
@@ -77,7 +77,7 @@ export default function SoundNotifier() {
             gainNode.connect(ctx.destination);
             oscillator.start();
             oscillator.stop(ctx.currentTime + 0.85);
-          } catch (___) {}
+          } catch (___) { }
         }
       }
     };
@@ -99,7 +99,7 @@ export default function SoundNotifier() {
           dispatch(api.util.invalidateTags(['Notifications']));
         }
         prevCountRef.current = count;
-      } catch (_) {}
+      } catch (_) { }
     };
 
     fetchCountAndNotify();
@@ -128,17 +128,17 @@ export default function SoundNotifier() {
                 dispatch(updateRoles(roles));
                 dispatch(updateAssignedHostels(assignedHostels));
                 dispatch(api.util.invalidateTags(['Profile', 'DashboardStats', 'Staff', 'ExeatRequests']));
-              } catch (_) {}
+              } catch (_) { }
             }
             if (count > prevCountRef.current && enabled) {
               await playAlertSound(`${API_BASE_URL}/notifications/alert-audio`);
               dispatch(api.util.invalidateTags(['Notifications']));
             }
             prevCountRef.current = count;
-          } catch {}
+          } catch { }
         };
         es.onerror = () => {
-          try { es && es.close(); } catch {}
+          try { es && es.close(); } catch { }
           if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
           const delay = Math.min(retryDelayRef.current, 30000);
           reconnectTimerRef.current = setTimeout(() => {
@@ -146,13 +146,13 @@ export default function SoundNotifier() {
             setupStream();
           }, delay);
         };
-      } catch {}
+      } catch { }
     };
     setupStream();
     if (!gestureBoundRef.current) {
       gestureBoundRef.current = true;
       const resume = () => {
-        try { audioCtxRef.current && audioCtxRef.current.resume(); } catch {}
+        try { audioCtxRef.current && audioCtxRef.current.resume(); } catch { }
         document.removeEventListener('pointerdown', resume);
         document.removeEventListener('keydown', resume);
       };
@@ -161,7 +161,7 @@ export default function SoundNotifier() {
       document.addEventListener('touchstart', resume, { once: true });
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') {
-          try { audioCtxRef.current && audioCtxRef.current.resume(); } catch {}
+          try { audioCtxRef.current && audioCtxRef.current.resume(); } catch { }
         }
       });
     }

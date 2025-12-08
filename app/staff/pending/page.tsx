@@ -275,46 +275,46 @@ export default function PendingExeatRequestsPage() {
                 </div>
 
                 {/* Filters Toolbar */}
-        <div className="mb-4 lg:mb-6">
-            <div className="w-full">
-                <ExeatRequestFilters
-                    searchTerm={searchTerm}
-                    setSearchTerm={setSearchTerm}
-                    statusFilter={statusFilter}
-                    setStatusFilter={setStatusFilter}
-                    dateFilter={dateFilter}
-                    setDateFilter={setDateFilter}
-                    categoryFilter={categoryFilter}
-                    setCategoryFilter={setCategoryFilter}
-                    gateFilter={gateFilter}
-                    setGateFilter={setGateFilter}
-                    onClearFilters={handleClearFilters}
-                    onDownload={async () => {
-                        try {
-                            const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-                            const params = new URLSearchParams();
-                            if (statusFilter !== 'all') params.set('status', statusFilter);
-                            if (gateFilter !== 'all') params.set('filter', gateFilter);
-                            // const url = `http://localhost:8000/api/staff/exeat-requests/export?${params.toString()}`;
-                            // const url = `https://attendance.veritas.edu.ng/api/staff/exeat-requests/export?${params.toString()}`;
-                            const url = `https://testexeat.veritas.edu.ng/api/staff/exeat-requests/export?${params.toString()}`;
-                            const res = await fetch(url, {
-                                headers: token ? { Authorization: `Bearer ${token}` } : {}
-                            });
-                            const blob = await res.blob();
-                            const link = document.createElement('a');
-                            link.href = URL.createObjectURL(blob);
-                            link.download = 'exeat_requests.csv';
-                            document.body.appendChild(link);
-                            link.click();
-                            document.body.removeChild(link);
-                        } catch (e) {
-                            console.error('Failed to download CSV', e);
-                        }
-                    }}
-                />
-            </div>
-        </div>
+                <div className="mb-4 lg:mb-6">
+                    <div className="w-full">
+                        <ExeatRequestFilters
+                            searchTerm={searchTerm}
+                            setSearchTerm={setSearchTerm}
+                            statusFilter={statusFilter}
+                            setStatusFilter={setStatusFilter}
+                            dateFilter={dateFilter}
+                            setDateFilter={setDateFilter}
+                            categoryFilter={categoryFilter}
+                            setCategoryFilter={setCategoryFilter}
+                            gateFilter={gateFilter}
+                            setGateFilter={setGateFilter}
+                            onClearFilters={handleClearFilters}
+                            onDownload={async () => {
+                                try {
+                                    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+                                    const params = new URLSearchParams();
+                                    if (statusFilter !== 'all') params.set('status', statusFilter);
+                                    if (gateFilter !== 'all') params.set('filter', gateFilter);
+                                    // const url = `http://localhost:8000/api/staff/exeat-requests/export?${params.toString()}`;
+                                    // const url = `https://attendance.veritas.edu.ng/api/staff/exeat-requests/export?${params.toString()}`;
+                                    const url = `https://attendance.veritas.edu.ng/api/staff/exeat-requests/export?${params.toString()}`;
+                                    const res = await fetch(url, {
+                                        headers: token ? { Authorization: `Bearer ${token}` } : {}
+                                    });
+                                    const blob = await res.blob();
+                                    const link = document.createElement('a');
+                                    link.href = URL.createObjectURL(blob);
+                                    link.download = 'exeat_requests.csv';
+                                    document.body.appendChild(link);
+                                    link.click();
+                                    document.body.removeChild(link);
+                                } catch (e) {
+                                    console.error('Failed to download CSV', e);
+                                }
+                            }}
+                        />
+                    </div>
+                </div>
 
                 {/* Content */}
                 <div className="space-y-4 lg:space-y-6">

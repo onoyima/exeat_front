@@ -44,6 +44,10 @@ const exeatFormSchema = z.object({
     required_error: 'Please select a return date',
   }),
 }).refine((data) => {
+  // Skip 3-day minimum validation for holiday category (id: 6)
+  if (data.category_id === '6') {
+    return true;
+  }
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const minDepartureDate = addDays(today, 3);
@@ -118,8 +122,36 @@ export default function ExeatApplicationForm({ onSuccess }: ExeatApplicationForm
     return sortedCategories.find(cat => String(cat.id) === watchedCategoryId);
   }, [sortedCategories, watchedCategoryId]);
 
+  // Check if holiday category is selected
+  const isHolidayCategory = useMemo(() => {
+    return selectedCategory?.id === 6 || selectedCategory?.name?.toLowerCase() === 'holiday';
+  }, [selectedCategory]);
+
+  // Handle holiday category - auto-set dates and lock them
+  useEffect(() => {
+    if (isHolidayCategory) {
+      // Set fixed dates for holiday category
+      const departureDate = new Date(2025, 11, 12); // December 12, 2025 (month is 0-indexed)
+      departureDate.setHours(0, 0, 0, 0);
+
+      const returnDate = new Date(2026, 0, 9); // January 9, 2026 (month is 0-indexed)
+      returnDate.setHours(0, 0, 0, 0);
+
+      // Set the dates in the form
+      form.setValue('departure_date', departureDate, { shouldValidate: true });
+      form.setValue('return_date', returnDate, { shouldValidate: true });
+
+      // Clear any date-related errors
+      form.clearErrors('departure_date');
+      form.clearErrors('return_date');
+    }
+  }, [isHolidayCategory, form]);
+
   // Handle category change - validate return date for exigency
   useEffect(() => {
+    // Skip validation if holiday category is selected
+    if (isHolidayCategory) return;
+
     const isExigency = selectedCategory?.name?.toLowerCase() === 'exigency';
     if (isExigency && watchedDepartureDate && watchedReturnDate) {
       const departureDateOnly = new Date(watchedDepartureDate);
@@ -137,10 +169,15 @@ export default function ExeatApplicationForm({ onSuccess }: ExeatApplicationForm
         });
       }
     }
-  }, [selectedCategory, watchedDepartureDate, watchedReturnDate, form]);
+  }, [selectedCategory, watchedDepartureDate, watchedReturnDate, form, isHolidayCategory]);
 
   // Optimized departure date disabled function
   const isDepartureDateDisabled = useCallback((date: Date) => {
+    // If holiday category is selected, disable all dates (dates are auto-set and locked)
+    if (isHolidayCategory) {
+      return true;
+    }
+
     const { minDepartureDate, threeMonthsFromNow } = dateBoundaries;
 
     const compareDate = new Date(date);
@@ -148,10 +185,15 @@ export default function ExeatApplicationForm({ onSuccess }: ExeatApplicationForm
 
     // Disable dates before minimum departure date (3 days from today) or after 3 months
     return compareDate < minDepartureDate || compareDate > threeMonthsFromNow;
-  }, [dateBoundaries]);
+  }, [dateBoundaries, isHolidayCategory]);
 
   // Optimized return date disabled function
   const isReturnDateDisabled = useCallback((date: Date) => {
+    // If holiday category is selected, disable all dates (dates are auto-set and locked)
+    if (isHolidayCategory) {
+      return true;
+    }
+
     const { today, threeMonthsFromNow } = dateBoundaries;
 
     const compareDate = new Date(date);
@@ -176,10 +218,19 @@ export default function ExeatApplicationForm({ onSuccess }: ExeatApplicationForm
     }
 
     return false;
-  }, [dateBoundaries, watchedDepartureDate, selectedCategory]);
+  }, [dateBoundaries, watchedDepartureDate, selectedCategory, isHolidayCategory]);
 
   // Optimized departure date change handler
   const handleDepartureDateChange = useCallback((date: Date | undefined, field: any) => {
+    // Prevent date changes if holiday category is selected
+    if (isHolidayCategory) {
+      // Reset to the fixed holiday dates
+      const departureDate = new Date(2025, 11, 12);
+      departureDate.setHours(0, 0, 0, 0);
+      field.onChange(departureDate);
+      return;
+    }
+
     field.onChange(date);
 
     // Clear return date if it becomes invalid (return date before departure date)
@@ -203,7 +254,7 @@ export default function ExeatApplicationForm({ onSuccess }: ExeatApplicationForm
         }
       }
     }
-  }, [watchedReturnDate, form, selectedCategory]);
+  }, [watchedReturnDate, form, selectedCategory, isHolidayCategory]);
 
   // Optimized form submission
   const onSubmit = useCallback(async (values: ExeatFormValues) => {
@@ -446,14 +497,20 @@ export default function ExeatApplicationForm({ onSuccess }: ExeatApplicationForm
               />
             )}
           />
-          <p className="text-xs text-muted-foreground mt-2">
-            Note: Departure date must be at least 3 days from today.
-            {dateBoundaries?.minDepartureDate && (
-              <>
-                {' '}Earliest allowed date: {format(dateBoundaries.minDepartureDate, 'MMM d, yyyy')}
-              </>
-            )}
-          </p>
+          {isHolidayCategory ? (
+            <p className="text-xs text-muted-foreground mt-2">
+              Holiday exeat dates are automatically set and cannot be changed.
+            </p>
+          ) : (
+            <p className="text-xs text-muted-foreground mt-2">
+              Note: Departure date must be at least 3 days from today.
+              {dateBoundaries?.minDepartureDate && (
+                <>
+                  {' '}Earliest allowed date: {format(dateBoundaries.minDepartureDate, 'MMM d, yyyy')}
+                </>
+              )}
+            </p>
+          )}
         </FormField>
 
         <FormField
@@ -466,12 +523,25 @@ export default function ExeatApplicationForm({ onSuccess }: ExeatApplicationForm
             render={({ field }) => (
               <DatePicker
                 value={field.value}
-                onChange={field.onChange}
+                onChange={(date) => {
+                  // Prevent date changes if holiday category is selected
+                  if (isHolidayCategory) {
+                    const returnDate = new Date(2026, 0, 9);
+                    returnDate.setHours(0, 0, 0, 0);
+                    field.onChange(returnDate);
+                    return;
+                  }
+                  field.onChange(date);
+                }}
                 disabled={isReturnDateDisabled}
               />
             )}
           />
-          {selectedCategory?.name?.toLowerCase() === 'exigency' && watchedDepartureDate && (
+          {isHolidayCategory ? (
+            <p className="text-xs text-muted-foreground mt-2">
+              Holiday exeat dates are automatically set and cannot be changed.
+            </p>
+          ) : selectedCategory?.name?.toLowerCase() === 'exigency' && watchedDepartureDate ? (
             <p className="text-xs text-muted-foreground mt-2">
               Note: Exigency category allows maximum of 4 days from departure date.
               {watchedDepartureDate && (
@@ -480,7 +550,7 @@ export default function ExeatApplicationForm({ onSuccess }: ExeatApplicationForm
                 </>
               )}
             </p>
-          )}
+          ) : null}
         </FormField>
       </div>
 
