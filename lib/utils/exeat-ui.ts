@@ -177,6 +177,7 @@ export const getCategoryIcon = (categoryId: number, isMedical: boolean) => {
     if (categoryId === 2) return '🌴';
     if (categoryId === 3) return '🚨';
     if (categoryId === 4) return '💼';
+    if (categoryId === 6) return '✈️';
     return '📋';
 };
 
@@ -191,6 +192,7 @@ export const getCategoryName = (categoryId: number, isMedical: boolean) => {
     if (categoryId === 2) return 'Casual';
     if (categoryId === 3) return 'Emergency';
     if (categoryId === 4) return 'Official';
+    if (categoryId === 6) return 'Holiday';
     return 'General';
 };
 
