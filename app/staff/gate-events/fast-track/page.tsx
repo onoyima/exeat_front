@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { staffApi } from '@/lib/services/staffApi';
+import { API_BASE_URL } from '@/lib/services/api';
  
 
 interface Student {
@@ -38,6 +39,7 @@ interface Student {
 interface ExeatRequest {
     id: number;
     student: Student;
+    matric_no: string; // Cached matric number on exeat_requests table
     category: { id: number; name: string };
     destination: string;
     departure_date: string;
@@ -80,7 +82,7 @@ export default function FastTrackGatePage() {
         setListLoading(true);
         try {
             const token = localStorage.getItem('token');
-            let url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/staff/exeat-requests/fast-track/list?type=${activeTab}&page=${listPage}`;
+            let url = `${API_BASE_URL}/staff/exeat-requests/fast-track/list?type=${activeTab}&page=${listPage}`;
             if (filterDate) url += `&date=${filterDate}`;
             
             const response = await fetch(url, {
@@ -110,22 +112,62 @@ export default function FastTrackGatePage() {
     }, [fetchList]);
 
     const performSearch = useCallback(async (query: string) => {
+        console.log('[Fast-Track] Starting search:', { query, activeTab });
         setIsSearching(true);
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/staff/exeat-requests/fast-track/search?search=${encodeURIComponent(query)}&type=${activeTab}`, {
+            const url = `${API_BASE_URL}/staff/exeat-requests/fast-track/search?search=${encodeURIComponent(query)}&type=${activeTab}`;
+            
+            console.log('[Fast-Track] Search URL:', url);
+            console.log('[Fast-Track] Search params:', { search: query, type: activeTab });
+            
+            const response = await fetch(url, {
                 headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
             });
+            
+            console.log('[Fast-Track] Response status:', response.status);
+            
             if (response.ok) {
                 const data = await response.json();
+                console.log('[Fast-Track] Response data:', data);
+                console.log('[Fast-Track] Exeat requests count:', data.exeat_requests?.length || 0);
+                
                 const newResults = data.exeat_requests.filter((req: ExeatRequest) => 
                     !queue.some(qItem => qItem.id === req.id)
                 );
+                
+                console.log('[Fast-Track] Filtered results (excluding queue):', newResults.length);
+                
+                if (newResults.length > 0) {
+                    console.log('[Fast-Track] Sample result:', {
+                        id: newResults[0].id,
+                        student: newResults[0].student?.fname + ' ' + newResults[0].student?.lname,
+                        matric: newResults[0].student?.matric_no,
+                        status: newResults[0].status
+                    });
+                }
+                
                 setSearchResults(newResults);
+            } else {
+                const errorText = await response.text();
+                console.error('[Fast-Track] Search failed:', response.status, errorText);
+                toast({
+                    title: "Search Error",
+                    description: `Server returned ${response.status}. Check console for details.`,
+                    variant: "destructive"
+                });
             }
-        } catch (error) { console.error(error); } 
-        finally { setIsSearching(false); }
-    }, [activeTab, queue]);
+        } catch (error) { 
+            console.error('[Fast-Track] Search exception:', error); 
+            toast({
+                title: "Network Error",
+                description: "Failed to connect to server. Check your connection.",
+                variant: "destructive"
+            });
+        } finally { 
+            setIsSearching(false); 
+        }
+    }, [activeTab, queue, toast]);
 
     // Debounce search
     useEffect(() => {
@@ -170,11 +212,14 @@ export default function FastTrackGatePage() {
         setIsProcessing(true);
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/staff/exeat-requests/fast-track/execute`, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                body: JSON.stringify({ request_ids: queue.map(r => r.id) })
-            });
+            const response = await fetch(
+                `${API_BASE_URL}/staff/exeat-requests/fast-track/execute`,
+                {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify({ request_ids: queue.map(r => r.id) })
+                }
+            );
 
             const result = await response.json();
             if (response.ok) {
@@ -208,7 +253,18 @@ export default function FastTrackGatePage() {
         <div className="container mx-auto p-4 max-w-6xl flex flex-col gap-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Fast-Track Gate Control</h1>
+                    <div className="flex items-center gap-3">
+                        <h1 className="text-2xl font-bold tracking-tight">Fast-Track Gate Control</h1>
+                        <Badge 
+                            className={`text-sm font-bold px-3 py-1 ${
+                                activeTab === 'sign_out' 
+                                    ? 'bg-red-600 hover:bg-red-700 text-white' 
+                                    : 'bg-green-600 hover:bg-green-700 text-white'
+                            }`}
+                        >
+                            {activeTab === 'sign_out' ? '🔴 SIGN OUT MODE' : '🟢 SIGN IN MODE'}
+                        </Badge>
+                    </div>
                     <p className="text-muted-foreground">Rapidly sign students in or out in bulk.</p>
                 </div>
             </div>
@@ -266,7 +322,7 @@ export default function FastTrackGatePage() {
                                         </Avatar>
                                         <div className="flex-1 min-w-0">
                                             <h4 className="font-semibold truncate text-sm">{req.student.fname} {req.student.lname}</h4>
-                                            <p className="text-xs text-muted-foreground">{req.student.matric_no}</p>
+                                            <p className="text-xs text-muted-foreground">{req.student.matric_no || req.matric_no || 'N/A'}</p>
                                         </div>
                                         <Plus className="h-4 w-4 text-muted-foreground" />
                                     </div>
@@ -393,7 +449,7 @@ export default function FastTrackGatePage() {
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td className="py-3 font-mono text-xs">{req.student.matric_no}</td>
+                                                <td className="py-3 font-mono text-xs">{req.student.matric_no || req.matric_no || 'N/A'}</td>
                                                 <td className="py-3">
                                                     <Badge variant="outline" className={activeTab === 'sign_out' ? 'text-red-600 border-red-200 bg-red-50' : 'text-green-600 border-green-200 bg-green-50'}>
                                                         {activeTab === 'sign_out' ? 'Ready to Leave' : 'Ready to Return'}
