@@ -209,38 +209,92 @@ export default function FastTrackGatePage() {
 
     const processQueue = async () => {
         if (queue.length === 0) return;
+        
         setIsProcessing(true);
+        console.log('[Fast-Track] Processing queue:', queue.length, 'students');
+        
+        // Create abort controller for timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+        
         try {
             const token = localStorage.getItem('token');
+            const requestIds = queue.map(r => r.id);
+            
+            console.log('[Fast-Track] Sending request:', { request_ids: requestIds });
+            
             const response = await fetch(
                 `${API_BASE_URL}/staff/exeat-requests/fast-track/execute`,
                 {
                     method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                    body: JSON.stringify({ request_ids: queue.map(r => r.id) })
+                    headers: { 
+                        'Authorization': `Bearer ${token}`, 
+                        'Content-Type': 'application/json', 
+                        'Accept': 'application/json' 
+                    },
+                    body: JSON.stringify({ request_ids: requestIds }),
+                    signal: controller.signal
                 }
             );
 
+            clearTimeout(timeoutId);
+            
+            console.log('[Fast-Track] Response status:', response.status);
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('[Fast-Track] Error response:', errorText);
+                throw new Error(`Server error: ${response.status}`);
+            }
+
             const result = await response.json();
-            if (response.ok) {
+            console.log('[Fast-Track] Result:', result);
+            
+            const processedCount = result.processed?.length || 0;
+            const failedCount = result.failed?.length || 0;
+            
+            if (processedCount > 0) {
                 toast({
                     title: "Success",
-                    description: `Successfully processed ${result.processed.length} students.`,
+                    description: `Successfully processed ${processedCount} student${processedCount > 1 ? 's' : ''}.${failedCount > 0 ? ` ${failedCount} failed.` : ''}`,
                     className: "bg-green-600 text-white"
                 });
                 setQueue([]);
                 fetchList(); // Refresh the eligible list
+            } else if (failedCount > 0) {
+                toast({
+                    title: "Partial Failure",
+                    description: `${failedCount} student${failedCount > 1 ? 's' : ''} failed to process.`,
+                    variant: "destructive"
+                });
             } else {
-                throw new Error(result.message);
+                toast({
+                    title: "No Changes",
+                    description: "No students were processed.",
+                    variant: "default"
+                });
             }
+            
         } catch (error: any) {
+            clearTimeout(timeoutId);
+            console.error('[Fast-Track] Process error:', error);
+            
+            let errorMessage = "Failed to process students.";
+            
+            if (error.name === 'AbortError') {
+                errorMessage = "Request timed out. Please try again with fewer students.";
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+            
             toast({
                 title: "Error",
-                description: error.message || "Failed to process.",
+                description: errorMessage,
                 variant: "destructive"
             });
         } finally {
             setIsProcessing(false);
+            console.log('[Fast-Track] Processing complete');
         }
     };
 
@@ -377,8 +431,17 @@ export default function FastTrackGatePage() {
                                     disabled={queue.length === 0 || isProcessing}
                                     onClick={processQueue}
                                 >
-                                    {isProcessing ? <Loader2 className="animate-spin" /> : (activeTab === 'sign_out' ? <LogOut /> : <LogIn />)}
-                                    Execute {queue.length > 0 && `(${queue.length})`}
+                                    {isProcessing ? (
+                                        <>
+                                            <Loader2 className="animate-spin" />
+                                            Processing...
+                                        </>
+                                    ) : (
+                                        <>
+                                            {activeTab === 'sign_out' ? <LogOut /> : <LogIn />}
+                                            Execute {queue.length > 0 && `(${queue.length})`}
+                                        </>
+                                    )}
                                 </Button>
                             </div>
                         </CardContent>
