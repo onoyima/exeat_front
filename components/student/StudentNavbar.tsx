@@ -53,7 +53,7 @@ export default function StudentNavbar({
         </Button>
 
         {/* Logo and Title */}
-        <div className="flex items-center gap-3 flex-1">
+        <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <Image
               src="/veritas-logo.png"
@@ -68,12 +68,15 @@ export default function StudentNavbar({
             </span>
           </div>
           <div className="hidden lg:block h-4 w-px bg-border mx-2" />
-          <div className="text-sm font-medium">Digital Exeat System</div>
+          <div className="text-xs sm:text-sm font-medium truncate">
+            <span className="hidden md:inline">Digital Exeat System</span>
+            <span className="md:hidden">Exeat System</span>
+          </div>
         </div>
 
         {/* User Menu */}
-        <div className="flex items-center gap-4">
-          <span className="hidden sm:block text-sm text-muted-foreground">
+        <div className="flex items-center gap-2 md:gap-4">
+          <span className="hidden md:block text-sm text-muted-foreground">
             Welcome, {user?.fname}
           </span>
 

@@ -90,7 +90,7 @@ export default function StaffNavbar({
         </Button>
 
         {/* Logo and Title */}
-        <div className="flex items-center gap-3 flex-1">
+        <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <Image
               src="/veritas-logo.png"
@@ -105,15 +105,11 @@ export default function StaffNavbar({
             </span>
           </div>
           <div className="hidden lg:block h-4 w-px bg-border mx-2" />
-          <div className="flex items-center gap-2">
-            <div className="text-sm font-medium">Digital Exeat System - Staff</div>
-            {hostelStagesEnabled !== null && (
-              <span
-                className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${hostelStagesEnabled ? 'bg-green-100 text-green-800 border-green-200' : 'bg-red-100 text-red-800 border-red-200'}`}
-              >
-                Hostel Stages: {hostelStagesEnabled ? 'Enabled' : 'Disabled'}
-              </span>
-            )}
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="text-xs sm:text-sm font-medium truncate">
+              <span className="hidden md:inline">Digital Exeat System - Staff</span>
+              <span className="md:hidden">Staff</span>
+            </div>
           </div>
         </div>
 
@@ -133,8 +129,8 @@ export default function StaffNavbar({
         </form>
 
         {/* User Menu */}
-        <div className="flex items-center gap-4">
-          <span className="hidden sm:block text-sm text-muted-foreground">
+        <div className="flex items-center gap-2 md:gap-4">
+          <span className="hidden md:block text-sm text-muted-foreground">
             Welcome, {user?.fname || 'Staff'}
           </span>
 
