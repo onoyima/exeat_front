@@ -10,6 +10,8 @@ export const getStatusColor = (status: string) => {
             return 'bg-emerald-100 text-emerald-800 border-emerald-200 hover:bg-emerald-200';
         case 'rejected':
             return 'bg-red-100 text-red-800 border-red-200 hover:bg-red-200';
+        case 'expired':
+            return 'bg-slate-100 text-slate-800 border-slate-200 hover:bg-slate-200';
         case 'cmd_review':
         case 'secretary_review':
         case 'dean_review':
@@ -63,6 +65,8 @@ export const getStatusText = (status: string) => {
             return 'Request Not Approved';
         case 'completed':
             return 'Request Completed';
+        case 'expired':
+            return 'Request Expired';
         default:
             return status.split('_').map(word =>
                 word.charAt(0).toUpperCase() + word.slice(1)

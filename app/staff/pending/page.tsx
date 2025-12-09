@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card';
@@ -50,7 +50,13 @@ export default function PendingExeatRequestsPage() {
     } = useStaff();
 
     const [page, setPage] = useState<number>(1);
-    const [perPage, setPerPage] = useState<number>(50);
+    const [perPage, setPerPage] = useState<number>(20); // Default to 20 per user request
+
+    // Reset page when filters change
+    useEffect(() => {
+        setPage(1);
+    }, [searchTerm, statusFilter, dateFilter, categoryFilter, gateFilter]);
+
     const { data: listData, isLoading, refetch } = useGetStaffExeatRequestsQuery({
         page,
         per_page: perPage,
@@ -329,11 +335,32 @@ export default function PendingExeatRequestsPage() {
                     )}
                 </div>
                 {pagination && (
-                    <div className="flex items-center justify-between mt-4">
-                        <div className="text-xs text-slate-500">Page {pagination.current_page} of {pagination.last_page}</div>
-                        <div className="flex gap-2">
-                            <Button variant="outline" size="sm" disabled={pagination.current_page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>Prev</Button>
-                            <Button variant="outline" size="sm" disabled={pagination.current_page >= pagination.last_page} onClick={() => setPage((p) => p + 1)}>Next</Button>
+                    <div className="flex flex-col sm:flex-row items-center justify-between mt-4 gap-4 bg-white/50 p-3 rounded-lg border border-slate-200">
+                        <div className="text-sm text-slate-600">
+                            Showing <span className="font-medium">{pagination.from || 0}</span> to <span className="font-medium">{pagination.to || 0}</span> of <span className="font-medium">{pagination.total}</span> results
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                disabled={pagination.current_page <= 1}
+                                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                                className="h-8 w-24"
+                            >
+                                Previous
+                            </Button>
+                            <div className="flex items-center justify-center min-w-[3rem] text-sm font-medium text-slate-600">
+                                {pagination.current_page} / {pagination.last_page}
+                            </div>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                disabled={pagination.current_page >= pagination.last_page}
+                                onClick={() => setPage((p) => p + 1)}
+                                className="h-8 w-24"
+                            >
+                                Next
+                            </Button>
                         </div>
                     </div>
                 )}
