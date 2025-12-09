@@ -117,6 +117,25 @@ export const staffApi = api.injectEndpoints({
             providesTags: ['ExeatRequests'],
         }),
 
+        // Paginated staff exeat requests with server-side search and filters
+        getStaffExeatRequests: builder.query<{
+            items: StaffExeatRequest[];
+            pagination: { current_page: number; last_page: number; per_page: number; total: number } | null;
+        }, { page?: number; per_page?: number; status?: string; filter?: string; search?: string; category_id?: number } | void>({
+            query: (params) => ({
+                url: '/staff/exeat-requests',
+                params,
+            }),
+            transformResponse: (response: any) => {
+                const items = Array.isArray(response)
+                    ? response
+                    : (response?.exeat_requests ?? response?.data ?? []);
+                const pagination = response?.pagination ?? null;
+                return { items, pagination };
+            },
+            providesTags: ['ExeatRequests'],
+        }),
+
         // Get a single exeat request by ID
         getExeatRequestById: builder.query<StaffExeatRequest, number>({
             query: (id) => `/staff/exeat-requests/${id}`,
@@ -323,6 +342,7 @@ export const {
     useGetExeatRequestsByStatusQuery,
     useGetExeatRequestByIdQuery,
     useGetExeatRequestsByStudentIdQuery,
+    useGetStaffExeatRequestsQuery,
     useApproveExeatRequestMutation,
     useRejectExeatRequestMutation,
     useSignStudentOutMutation,

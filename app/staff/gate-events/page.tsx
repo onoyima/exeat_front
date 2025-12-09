@@ -11,6 +11,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { Download, Search } from 'lucide-react';
 import { useGetGateEventsQuery } from '@/lib/services/staffApi';
+import { API_BASE_URL } from '@/lib/services/api';
 
 export default function GateEventsPage() {
   const { assignedHostels } = useStaff();
@@ -26,7 +27,6 @@ export default function GateEventsPage() {
 
   const onDownload = async () => {
     const host = typeof window !== 'undefined' ? window.location.hostname : '';
-    const API_BASE_URL = 'https://attendance.veritas.edu.ng/api';
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
     const url = new URL(`${API_BASE_URL}/staff/gate-events/export`);
     url.searchParams.set('checked', checked);

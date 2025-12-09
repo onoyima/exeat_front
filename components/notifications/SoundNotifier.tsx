@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectCurrentUser, updateRoles, updateAssignedHostels } from '@/lib/services/authSlice';
-import { api } from '@/lib/services/api';
+import { api, API_BASE_URL } from '@/lib/services/api';
 
 export default function SoundNotifier() {
   const prevCountRef = useRef<number>(0);
@@ -11,8 +11,6 @@ export default function SoundNotifier() {
   const currentUser = useSelector(selectCurrentUser) as any;
   const roles: string[] = Array.isArray(currentUser?.roles) ? currentUser.roles : [];
   const [enabled, setEnabled] = useState<boolean>(true);
-  //   const API_BASE_URL = (typeof window !== 'undefined' && window.location.hostname === 'attendance.veritas.edu.ng')
-  const API_BASE_URL = 'https://attendance.veritas.edu.ng/api'
   const dispatch = useDispatch();
   const retryDelayRef = useRef<number>(2000);
   const reconnectTimerRef = useRef<any>(null);
@@ -169,7 +167,7 @@ export default function SoundNotifier() {
       if (es) es.close();
       if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
     };
-  }, [enabled, API_BASE_URL, dispatch]);
+  }, [enabled, dispatch]);
 
   return null;
 }

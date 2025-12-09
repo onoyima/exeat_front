@@ -1,10 +1,17 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import type { RootState } from '@/lib/store';
 
-// Use proxy URL for development, direct URL for production
-// const API_BASE_URL = 'http://localhost:8000/api';
-const API_BASE_URL = 'https://attendance.veritas.edu.ng/api';
-// const API_BASE_URL = 'https://testexeat.veritas.edu.ng/api';    
+const resolveBaseUrl = () => {
+    const env = process.env.NEXT_PUBLIC_API_BASE_URL;
+    if (env && env.length) return env;
+    if (typeof window !== 'undefined') {
+        const h = window.location.hostname || '';
+        if (h.endsWith('veritas.edu.ng')) return 'https://attendance.veritas.edu.ng/api';
+    }
+    return process.env.NODE_ENV === 'production' ? 'https://attendance.veritas.edu.ng/api' : 'http://localhost:8000/api';
+};
+
+export const API_BASE_URL: string = resolveBaseUrl();
 
 // Get token from Redux state
 const getAuthToken = (getState: () => RootState) => {

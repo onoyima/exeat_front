@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import LogoutModal from '@/components/ui/logout-modal';
+import { API_BASE_URL } from '@/lib/services/api';
 
 export default function StaffNavbar({
   onMenuClick,
@@ -42,7 +43,7 @@ export default function StaffNavbar({
     const fetchConfig = async () => {
       try {
         const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-        const res = await fetch('https://attendance.veritas.edu.ng/api/config/hostel-stages', {
+        const res = await fetch(`${API_BASE_URL}/config/hostel-stages`, {
           headers: token ? { Authorization: `Bearer ${token}` } : {}
         });
         const json = await res.json();

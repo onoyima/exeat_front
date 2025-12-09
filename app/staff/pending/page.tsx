@@ -20,12 +20,14 @@ import {
     XCircle,
     CheckCircle,
 } from 'lucide-react';
-import { useStaff, useStaffExeatRequests } from '@/hooks/use-staff';
+import { useStaff } from '@/hooks/use-staff';
 import { useGetCategoriesQuery } from '@/lib/services/exeatApi';
 import { ExeatRequestsTable } from '@/components/staff/ExeatRequestsTable';
 import { ExeatRequestFilters } from '@/components/staff/ExeatRequestFilters';
 import { extractRoleName } from '@/lib/utils/csrf';
 import type { StaffExeatRequest } from '@/lib/services/staffApi';
+import { API_BASE_URL } from '@/lib/services/api';
+import { useGetStaffExeatRequestsQuery } from '@/lib/services/staffApi';
 
 
 export default function PendingExeatRequestsPage() {
@@ -47,98 +49,24 @@ export default function PendingExeatRequestsPage() {
         sendComment,
     } = useStaff();
 
-    const { data: allRequests, isLoading, refetch } = useStaffExeatRequests();
+    const [page, setPage] = useState<number>(1);
+    const [perPage, setPerPage] = useState<number>(50);
+    const { data: listData, isLoading, refetch } = useGetStaffExeatRequestsQuery({
+        page,
+        per_page: perPage,
+        status: statusFilter !== 'all' ? statusFilter : undefined,
+        filter: gateFilter !== 'all' ? gateFilter : undefined,
+        search: searchTerm || undefined,
+        category_id: categoryFilter !== 'all' ? nameToId[categoryFilter] : undefined,
+    });
     const { data: categoriesData } = useGetCategoriesQuery();
     const nameToId: Record<string, number> = Object.fromEntries(
         (categoriesData?.categories || []).map((c) => [c.name.toLowerCase(), c.id])
     );
 
 
-    // Derive filtered and dated requests
-    const requests = (allRequests || [])
-        .filter((request: StaffExeatRequest) => {
-            if (!searchTerm) return true;
-            const s = searchTerm.toLowerCase();
-            return (
-                request.student.fname.toLowerCase().includes(s) ||
-                request.student.lname.toLowerCase().includes(s) ||
-                request.matric_no.toLowerCase().includes(s) ||
-                request.destination.toLowerCase().includes(s) ||
-                request.reason.toLowerCase().includes(s) ||
-                request.parent_surname.toLowerCase().includes(s) ||
-                request.parent_othernames.toLowerCase().includes(s)
-            );
-        })
-        .filter((request: StaffExeatRequest) => {
-            // Status filter - using grouped logic matching the stats cards
-            if (statusFilter !== 'all') {
-                const status = request.status;
-                const statusGroups = {
-                    pending: ['pending', 'recommendation1', 'recommendation2'],
-                    medical: ['cmd_review'],
-                    dean: ['secretary_review', 'parent_consent', 'dean_review'],
-                    approved: ['approved', 'hostel_signin', 'hostel_signout', 'security_signout'],
-                    active: ['signed_out', 'security_signin'],
-                    rejected: ['rejected'],
-                    completed: ['completed']
-                };
-
-                return statusGroups[statusFilter as keyof typeof statusGroups]?.includes(status) ?? true;
-            }
-            return true;
-        })
-        .filter((request: StaffExeatRequest) => {
-            if (gateFilter === 'all') return true;
-            if (gateFilter === 'overdue') {
-                const today = new Date();
-                const returnDate = new Date(request.return_date);
-                const isBack = ['security_signin', 'hostel_signin', 'completed'].includes(request.status);
-                return returnDate < today && !isBack && !request.is_expired;
-            }
-            if (gateFilter === 'signed_out') {
-                return request.status === 'security_signout';
-            }
-            if (gateFilter === 'signed_in') {
-                return request.status === 'security_signin';
-            }
-            return true;
-        })
-        .filter((request: StaffExeatRequest) => {
-            if (dateFilter === 'all') return true;
-            const created = new Date(request.created_at);
-            const now = new Date();
-            if (dateFilter === 'today') {
-                return created.toDateString() === now.toDateString();
-            }
-            if (dateFilter === 'week') {
-                const diff = (now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24);
-                return diff <= 7;
-            }
-            if (dateFilter === 'month') {
-                return (
-                    created.getFullYear() === now.getFullYear() &&
-                    created.getMonth() === now.getMonth()
-                );
-            }
-            if (dateFilter === 'quarter') {
-                const quarter = Math.floor(now.getMonth() / 3);
-                return (
-                    created.getFullYear() === now.getFullYear() &&
-                    Math.floor(created.getMonth() / 3) === quarter
-                );
-            }
-            return true;
-        })
-        .filter((request: StaffExeatRequest) => {
-            if (categoryFilter === 'all') return true;
-            const id = nameToId[categoryFilter];
-            if (!id) return true; // unknown filter value, do not exclude
-            return request.category_id === id;
-        })
-        .sort((a: StaffExeatRequest, b: StaffExeatRequest) => {
-            // Default sort by creation date (newest first)
-            return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-        });
+    const requests: StaffExeatRequest[] = (listData?.items || []);
+    const pagination = listData?.pagination;
 
     const handleApprove = async (exeat_request_id: number, comment?: string) => {
         try {
@@ -295,9 +223,7 @@ export default function PendingExeatRequestsPage() {
                                     const params = new URLSearchParams();
                                     if (statusFilter !== 'all') params.set('status', statusFilter);
                                     if (gateFilter !== 'all') params.set('filter', gateFilter);
-                                    // const url = `http://localhost:8000/api/staff/exeat-requests/export?${params.toString()}`;
-                                    // const url = `https://attendance.veritas.edu.ng/api/staff/exeat-requests/export?${params.toString()}`;
-                                    const url = `https://attendance.veritas.edu.ng/api/staff/exeat-requests/export?${params.toString()}`;
+                                    const url = `${API_BASE_URL}/staff/exeat-requests/export?${params.toString()}`;
                                     const res = await fetch(url, {
                                         headers: token ? { Authorization: `Bearer ${token}` } : {}
                                     });
@@ -344,10 +270,10 @@ export default function PendingExeatRequestsPage() {
                             <CardHeader className="pb-3 lg:pb-4">
                                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                                     <div>
-                                        <CardDescription className="text-slate-600 text-sm">
-                                            Showing {requests.length} request{requests.length !== 1 ? 's' : ''}
-                                            {statusFilter !== 'all' && ` with status "${statusFilter}"`}
-                                        </CardDescription>
+                                    <CardDescription className="text-slate-600 text-sm">
+                                        Showing {requests.length} of {pagination?.total ?? requests.length}
+                                        {statusFilter !== 'all' && ` with status "${statusFilter}"`}
+                                    </CardDescription>
                                     </div>
                                 </div>
                             </CardHeader>
@@ -402,6 +328,15 @@ export default function PendingExeatRequestsPage() {
                         </Card>
                     )}
                 </div>
+                {pagination && (
+                    <div className="flex items-center justify-between mt-4">
+                        <div className="text-xs text-slate-500">Page {pagination.current_page} of {pagination.last_page}</div>
+                        <div className="flex gap-2">
+                            <Button variant="outline" size="sm" disabled={pagination.current_page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>Prev</Button>
+                            <Button variant="outline" size="sm" disabled={pagination.current_page >= pagination.last_page} onClick={() => setPage((p) => p + 1)}>Next</Button>
+                        </div>
+                    </div>
+                )}
             </div>
         </ProtectedRoute>
     );
