@@ -57,6 +57,12 @@ export default function PendingExeatRequestsPage() {
         setPage(1);
     }, [searchTerm, statusFilter, dateFilter, categoryFilter, gateFilter]);
 
+    // Fetch categories first to build the nameToId mapping
+    const { data: categoriesData } = useGetCategoriesQuery();
+    const nameToId: Record<string, number> = Object.fromEntries(
+        (categoriesData?.categories || []).map((c) => [c.name.toLowerCase(), c.id])
+    );
+
     const { data: listData, isLoading, refetch } = useGetStaffExeatRequestsQuery({
         page,
         per_page: perPage,
@@ -65,10 +71,6 @@ export default function PendingExeatRequestsPage() {
         search: searchTerm || undefined,
         category_id: categoryFilter !== 'all' ? nameToId[categoryFilter] : undefined,
     });
-    const { data: categoriesData } = useGetCategoriesQuery();
-    const nameToId: Record<string, number> = Object.fromEntries(
-        (categoriesData?.categories || []).map((c) => [c.name.toLowerCase(), c.id])
-    );
 
 
     const requests: StaffExeatRequest[] = (listData?.items || []);
@@ -276,10 +278,10 @@ export default function PendingExeatRequestsPage() {
                             <CardHeader className="pb-3 lg:pb-4">
                                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                                     <div>
-                                    <CardDescription className="text-slate-600 text-sm">
-                                        Showing {requests.length} of {pagination?.total ?? requests.length}
-                                        {statusFilter !== 'all' && ` with status "${statusFilter}"`}
-                                    </CardDescription>
+                                        <CardDescription className="text-slate-600 text-sm">
+                                            Showing {requests.length} of {pagination?.total ?? requests.length}
+                                            {statusFilter !== 'all' && ` with status "${statusFilter}"`}
+                                        </CardDescription>
                                     </div>
                                 </div>
                             </CardHeader>
@@ -336,9 +338,9 @@ export default function PendingExeatRequestsPage() {
                 </div>
                 {pagination && (
                     <div className="flex flex-col sm:flex-row items-center justify-between mt-4 gap-4 bg-white/50 p-3 rounded-lg border border-slate-200">
-                        <div className="text-sm text-slate-600">
+                        {/* <div className="text-sm text-slate-600">
                             Showing <span className="font-medium">{pagination.from || 0}</span> to <span className="font-medium">{pagination.to || 0}</span> of <span className="font-medium">{pagination.total}</span> results
-                        </div>
+                        </div> */}
                         <div className="flex items-center gap-2">
                             <Button
                                 variant="outline"

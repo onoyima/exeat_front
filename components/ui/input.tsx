@@ -14,7 +14,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     const inputId = id ?? generatedId;
 
     return (
-      <div className="space-y-1">
+      <div className="space-y-1 my-2">
         {label && <Label htmlFor={inputId}>{label}</Label>}
         <input
           id={inputId}
