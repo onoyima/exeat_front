@@ -22,6 +22,7 @@ import {
   FileText,
   Bell,
   CheckCircle2,
+  Zap,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -77,6 +78,17 @@ export default function StaffSidebar({
       );
     }
 
+    return false;
+  };
+
+  // Helper to check for specific roles
+  const hasRole = (user: any, roleName: string): boolean => {
+    if (!user) return false;
+    if (user.role === roleName) return true;
+    if (Array.isArray(user.roles) && user.roles.includes(roleName)) return true;
+    if (Array.isArray(user.exeat_roles)) {
+      return user.exeat_roles.some((roleObj: any) => roleObj?.role?.name === roleName);
+    }
     return false;
   };
 
@@ -160,6 +172,13 @@ export default function StaffSidebar({
         <NavLink href="/staff/gate-events" icon={CheckCircle2}>
           Gate Events
         </NavLink>
+        
+        {/* Fast-Track Gate Control - Restricted to Security, Admin, Dean, Deputy Dean */}
+        {(hasRole(user, 'security') || hasAdminRole(user) || hasRole(user, 'dean') || hasRole(user, 'deputy-dean')) && (
+             <NavLink href="/staff/gate-events/fast-track" icon={Zap}>
+                 Fast-Track Gate
+             </NavLink>
+        )}
 
             <NavLink href="/staff/history" icon={History}>
               Completed Exeats

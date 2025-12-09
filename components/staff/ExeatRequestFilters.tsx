@@ -1,17 +1,20 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { useGetCategoriesQuery } from '@/lib/services/exeatApi';
+import { useGetStaffExeatRequestsQuery } from '@/lib/services/staffApi';
+import type { StaffExeatRequest } from '@/lib/services/staffApi';
 import {
     Filter,
     Search,
     Calendar,
     User,
     MapPin,
-    Clock
+    Clock,
+    Loader2
 } from 'lucide-react';
 
 interface ExeatRequestFiltersProps {
@@ -46,6 +49,11 @@ export const ExeatRequestFilters: React.FC<ExeatRequestFiltersProps> = ({
     const hasActiveFilters = searchTerm || statusFilter !== 'all' || dateFilter !== 'all' || categoryFilter !== 'all' || gateFilter !== 'all';
     const { data: categoriesData } = useGetCategoriesQuery();
     const categories = useMemo(() => categoriesData?.categories || [], [categoriesData]);
+    const categoryId = useMemo(() => {
+        if (!categories || categoryFilter === 'all') return undefined;
+        const match = categories.find((c: any) => c.name.toLowerCase() === categoryFilter.toLowerCase());
+        return match ? match.id : undefined;
+    }, [categories, categoryFilter]);
 
     return (
         <Card className="mb-6">
@@ -67,6 +75,15 @@ export const ExeatRequestFilters: React.FC<ExeatRequestFiltersProps> = ({
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="pl-10"
+                            />
+
+                            {/* Typeahead suggestions */}
+                            <TypeaheadSuggestions
+                                query={searchTerm}
+                                statusFilter={statusFilter}
+                                gateFilter={gateFilter}
+                                categoryId={categoryId}
+                                onSelect={(s) => setSearchTerm(s)}
                             />
                         </div>
                     </div>
@@ -207,5 +224,77 @@ export const ExeatRequestFilters: React.FC<ExeatRequestFiltersProps> = ({
                 )}
             </CardContent>
         </Card>
+    );
+};
+
+interface TypeaheadProps {
+    query: string;
+    statusFilter: string;
+    gateFilter?: string;
+    categoryId?: number;
+    onSelect: (value: string) => void;
+}
+
+const TypeaheadSuggestions: React.FC<TypeaheadProps> = ({ query, statusFilter, gateFilter = 'all', categoryId, onSelect }) => {
+    const [debounced, setDebounced] = useState<string>('');
+    const timer = useRef<any>(null);
+
+    useEffect(() => {
+        if (timer.current) clearTimeout(timer.current);
+        timer.current = setTimeout(() => {
+            setDebounced(query);
+        }, 200);
+        return () => timer.current && clearTimeout(timer.current);
+    }, [query]);
+
+    const enabled = debounced.trim().length >= 2;
+    const params: any = enabled ? {
+        search: debounced.trim(),
+        page: 1,
+        per_page: 10,
+        status: statusFilter !== 'all' ? statusFilter : undefined,
+        filter: gateFilter !== 'all' ? gateFilter : undefined,
+        category_id: categoryId,
+    } : undefined;
+
+    const { data, isFetching } = useGetStaffExeatRequestsQuery(params as any, { skip: !enabled });
+    const items: StaffExeatRequest[] = (data?.items || []);
+
+    if (!enabled || (!isFetching && items.length === 0)) {
+        return null;
+    }
+
+    return (
+        <div className="absolute left-0 right-0 mt-1 bg-white border border-slate-200 rounded-md shadow-lg z-50">
+            <div className="max-h-64 overflow-auto">
+                {isFetching && (
+                    <div className="flex items-center gap-2 px-3 py-2 text-sm text-slate-600">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Searching...
+                    </div>
+                )}
+                {!isFetching && items.map((req) => (
+                    <button
+                        key={req.id}
+                        type="button"
+                        className="w-full text-left px-3 py-2 hover:bg-slate-50 flex items-center gap-3"
+                        onMouseDown={(e) => {
+                            e.preventDefault();
+                            onSelect(req.matric_no || `${req.student?.fname || ''} ${req.student?.lname || ''}`.trim());
+                        }}
+                    >
+                        <div className="flex-1">
+                            <div className="text-sm font-medium text-slate-800">
+                                {(req.student?.fname || '') + ' ' + (req.student?.lname || '')}
+                                {req.matric_no ? ` · ${req.matric_no}` : ''}
+                            </div>
+                            <div className="text-xs text-slate-500">
+                                {req.destination || 'No destination'} · {req.status.replace('_', ' ')}
+                            </div>
+                        </div>
+                    </button>
+                ))}
+            </div>
+        </div>
     );
 };
