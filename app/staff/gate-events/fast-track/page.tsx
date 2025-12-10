@@ -75,6 +75,12 @@ export default function FastTrackGatePage() {
     // Queue State
     const [queue, setQueue] = useState<ExeatRequest[]>([]);
     const [isProcessing, setIsProcessing] = useState(false);
+
+    // History State
+    const [historyData, setHistoryData] = useState<any[]>([]);
+    const [historyMeta, setHistoryMeta] = useState<PaginationMeta | null>(null);
+    const [historyLoading, setHistoryLoading] = useState(false);
+    const [historyPage, setHistoryPage] = useState(1);
     
     const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -106,10 +112,39 @@ export default function FastTrackGatePage() {
         }
     }, [activeTab, listPage, filterDate]);
 
+    const fetchHistory = useCallback(async () => {
+        setHistoryLoading(true);
+        try {
+            const token = localStorage.getItem('token');
+            let url = `${API_BASE_URL}/staff/exeat-requests/fast-track/history?type=${activeTab}&page=${historyPage}`;
+            if (filterDate) url += `&date=${filterDate}`;
+            
+            const response = await fetch(url, {
+                headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                setHistoryData(data.data);
+                setHistoryMeta({
+                    current_page: data.current_page,
+                    last_page: data.last_page,
+                    total: data.total,
+                    per_page: data.per_page
+                });
+            }
+        } catch (error) {
+            console.error('Fetch history failed', error);
+        } finally {
+            setHistoryLoading(false);
+        }
+    }, [activeTab, historyPage, filterDate]);
+
     // Initial Fetch & Refresh on Tab/Page/Date change
     useEffect(() => {
         fetchList();
-    }, [fetchList]);
+        fetchHistory();
+    }, [fetchList, fetchHistory]);
 
     const performSearch = useCallback(async (query: string) => {
         console.log('[Fast-Track] Starting search:', { query, activeTab });
@@ -261,6 +296,7 @@ export default function FastTrackGatePage() {
                 });
                 setQueue([]);
                 fetchList(); // Refresh the eligible list
+                fetchHistory(); // Refresh the history list
             } else if (failedCount > 0) {
                 toast({
                     title: "Partial Failure",
@@ -559,6 +595,96 @@ export default function FastTrackGatePage() {
                                     className="h-8 w-8 p-0" 
                                     disabled={!listMeta || listPage >= listMeta.last_page || listLoading}
                                     onClick={() => setListPage(p => p + 1)}
+                                >
+                                    <ChevronRight className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* BOTTOM: History List */}
+                <div className="space-y-4 mt-8 pb-10">
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-xl font-bold flex items-center gap-2">
+                            <CheckCircle2 className="h-5 w-5 text-green-600" />
+                            Recently Approved {activeTab === 'sign_out' ? 'Departures' : 'Arrivals'}
+                        </h2>
+                        <Button variant="outline" size="sm" onClick={fetchHistory} disabled={historyLoading}>
+                             <Loader2 className={`h-3 w-3 mr-1 ${historyLoading ? 'animate-spin' : ''}`} />
+                             Refresh
+                        </Button>
+                    </div>
+
+                    <div className="rounded-md border bg-slate-50">
+                        <div className="p-4 overflow-x-auto">
+                            {historyLoading ? (
+                                <div className="h-24 flex items-center justify-center">
+                                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                                </div>
+                            ) : historyData.length === 0 ? (
+                                <div className="h-24 flex items-center justify-center text-muted-foreground text-sm">
+                                    No history found for this date.
+                                </div>
+                            ) : (
+                                <table className="w-full text-sm">
+                                    <thead>
+                                        <tr className="border-b text-left text-xs font-medium text-muted-foreground">
+                                            <th className="pb-3 pl-2">Student</th>
+                                            <th className="pb-3">Action Time</th>
+                                            <th className="pb-3">Processed By</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {historyData.map((item) => (
+                                            <tr key={item.id} className="border-b last:border-0 hover:bg-white">
+                                                <td className="py-3 pl-2">
+                                                    <div className="flex items-center gap-3">
+                                                        <Avatar className="h-8 w-8 grayscale opacity-80">
+                                                            <AvatarImage src={item.exeat_request?.student?.passport ? `data:image/jpeg;base64,${item.exeat_request.student.passport}` : ''} />
+                                                            <AvatarFallback>?</AvatarFallback>
+                                                        </Avatar>
+                                                        <div>
+                                                            <div className="font-medium">{item.exeat_request?.student?.fname} {item.exeat_request?.student?.lname}</div>
+                                                            <div className="text-xs text-muted-foreground">{item.exeat_request?.matric_no}</div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="py-3 font-mono text-xs">
+                                                    {new Date(activeTab === 'sign_out' ? item.signout_time : item.signin_time).toLocaleTimeString()}
+                                                </td>
+                                                <td className="py-3 text-xs text-muted-foreground">
+                                                    {item.security ? `${item.security.fname} ${item.security.lname}` : 'System'}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            )}
+                        </div>
+                        
+                        {/* History Pagination */}
+                        <div className="flex items-center justify-between border-t p-4 text-xs text-muted-foreground bg-white rounded-b-md">
+                            <div>
+                                Showing {(historyPage - 1) * 20 + 1} to {Math.min(historyPage * 20, historyMeta?.total || 0)} of {historyMeta?.total || 0}
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    className="h-8 w-8 p-0" 
+                                    disabled={historyPage === 1 || historyLoading}
+                                    onClick={() => setHistoryPage(p => p - 1)}
+                                >
+                                    <ChevronLeft className="h-4 w-4" />
+                                </Button>
+                                <span className="mx-2">Page {historyPage}</span>
+                                <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    className="h-8 w-8 p-0" 
+                                    disabled={!historyMeta || historyPage >= historyMeta.last_page || historyLoading}
+                                    onClick={() => setHistoryPage(p => p + 1)}
                                 >
                                     <ChevronRight className="h-4 w-4" />
                                 </Button>

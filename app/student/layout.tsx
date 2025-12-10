@@ -1,15 +1,22 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import StudentSidebar from '@/components/student/StudentSidebar';
 import StudentNavbar from '@/components/student/StudentNavbar';
 import { useGetCurrentUser } from '@/hooks/use-current-user';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import WhatsAppButton from '@/components/student/WhatsAppButton';
 
 export default function StudentLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showExeatModal, setShowExeatModal] = useState(false);
   const currentUser = useGetCurrentUser();
+  const [isClient, setIsClient] = useState(false);
+
+  // Avoid hydration mismatch by rendering only on client
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   return (
     <ProtectedRoute requiredRole="student">
@@ -33,6 +40,8 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
             </div>
           </main>
         </div>
+        
+        {isClient && <WhatsAppButton />}
 
         {/* Loading state is now handled by the auth hook */}
       </div>
