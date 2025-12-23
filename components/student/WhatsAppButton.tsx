@@ -6,7 +6,7 @@ export default function WhatsAppButton() {
   const [isHovered, setIsHovered] = useState(false);
   
   // WhatsApp number - Exeat enquiry contact
-  const whatsappNumber = '2348022882828'; // Nigeria number (country code without +)
+  const whatsappNumber = '2348022881818'; // Nigeria number (country code without +)
   
   // Pre-filled message
   const message = 'Hi, I\'m a student of Veritas University, I want to make Enquiry about my Exeat Request.....';
@@ -61,4 +61,5 @@ export default function WhatsAppButton() {
     </a>
   );
 }
+
 
