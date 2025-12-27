@@ -6,9 +6,9 @@ const resolveBaseUrl = () => {
     if (env && env.length) return env;
     if (typeof window !== 'undefined') {
         const h = window.location.hostname || '';
-        if (h.endsWith('veritas.edu.ng')) return 'https://attendance.veritas.edu.ng/api';
+        if (h.endsWith('veritas.edu.ng')) return 'https://atteendance.azurewebsites.net/api';
     }
-    return process.env.NODE_ENV === 'production' ? 'https://attendance.veritas.edu.ng/api' : 'http://localhost:8000/api';
+    return process.env.NODE_ENV === 'production' ? 'https://atteendance.azurewebsites.net/api' : 'http://localhost:8000/api';
 };
 
 export const API_BASE_URL: string = resolveBaseUrl();
